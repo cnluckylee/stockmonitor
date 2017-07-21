@@ -1,0 +1,13 @@
+.idea/
+.user.ini
+.DS_Store
+protected/runtime/cache/
+/.idea
+/protected/runtime/cache
+/assets
+uploads/
+Uploads/
+/frontend/web/Uploads
+/frontend/web/test
+.project
+common/components/IP2Location/IP2LOCATION-LITE-DB5.BIN

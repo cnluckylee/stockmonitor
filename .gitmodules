@@ -1,0 +1,3 @@
+[submodule "vendor/callmez/yii2-wechat"]
+	path = vendor/callmez/yii2-wechat
+	url = https://github.com/callmez/yii2-wechat.git

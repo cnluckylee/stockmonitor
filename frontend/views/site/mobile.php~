@@ -1,0 +1,124 @@
+<?php
+use frontend\assets\SiteAsset;
+use common\models\Tools;
+
+
+
+
+/* @var $this \yii\web\View */
+/* @var $content string */
+
+SiteAsset::register($this);
+?>
+<body class="ios">
+    <div class="app-view" data-view-id="1">
+      <div class="page-container">
+        <div class="page has-solid-header landing visible" style="z-index: 600;">
+          <nav class="page-menu-view display-none" data-view-id="5">
+            <ul>
+              <li id="header-button-back" class="touchable header-button header-button-back qa-header-button-back image-button left"
+              name="back">
+              </li>
+            </ul>
+            <h1 class="header2 centered no-pointer-events page-title">
+              LOCO
+            </h1>
+            <span class="no-pointer-events page-sub-title">
+            </span>
+          </nav>
+          <div class="scroller " id="scroller-web-landing-page-view" data-view-id="6"
+          style="overflow: hidden;">
+            <div id="web-landing-page-view" class="" style="transition-property: -webkit-transform; transform-origin: 0px 0px 0px; transform: translate(0px, 0px) translateZ(0px);">
+              <div class="fake-app-banner apple" data-view-id="8">
+                <a href="#" class="app-store-icon">
+                </a>
+                <div class="close">
+                </div>
+                <div class="contents">
+                  <span class="title">
+                    <strong>
+                      LOCO
+                    </strong>
+                    - 认识新朋友，聊天，社交
+                  </span>
+                  <span>
+                    免费 - App Store
+                  </span>
+                  <span class="rating">
+                    <span class="rating-stars">
+                    </span>
+                  </span>
+                </div>
+                <div class="buttons">
+                  <div class="button-wrap">
+                    <div class="app-store-button native-app-get">
+                      <a href="<?=$soft['android']?>" >下载</a>
+                    </div>
+                    <div class="app-store-button native-app-view">
+                      打开
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="heading">
+                <h1>
+					LOCO
+                </h1>
+                <h2>
+                  在附近认识新朋友，聊聊您最喜欢的爱好。
+                </h2>
+                
+                <!--<span class="disclaimer">我们绝不会未经您的许可发布留言。</span>-->
+              </div>
+              <div id="carousel-wrapper">
+                <div class="sprite-base" data-view-id="7">
+                  <div class="sprite-carousel" style="background-position: 500% 0%;">
+                  </div>
+                  <div class="chevron left" id="button-carousel-left">
+                  </div>
+                  <div class="chevron right" id="button-carousel-right">
+                  </div>
+                </div>
+              </div>
+              <div class="footer">
+                <span id="link-appstore" class="app-store">
+                  下载链接
+                  <strong>
+                    App Store
+                  </strong>
+                </span>
+                <hr>
+                <a id="link-privacy" href="#legal/privacy" class="privacy-policy">
+                  隐私
+                </a>
+                <a id="link-terms" href="#legal/terms" class="terms-of-service">
+                  服务条款
+                </a>
+                <a id="link-help" href="#settings-help-center" class="help-center">
+                  帮助
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="in-app-notifications-container">
+        <div class="in-app-notification_" data-view-id="4">
+        </div>
+      </div>
+      <div id="gallery-fullscreen-container" class="gallery-fullscreen-container hidden">
+      </div>
+      <div class="modal-container hidden " data-view-id="2">
+      </div>
+      <div class="landscape-block">
+        <p id="landscape-block-text">
+          请旋转您的手机
+        </p>
+        <div id="landscape-block-phone">
+          <div id="landscape-block-phone-screen">
+          </div>
+          <div id="landscape-block-home-button">
+          </div>
+        </div>
+      </div>
+    </div>
