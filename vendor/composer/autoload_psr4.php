@@ -12,15 +12,7 @@ return array(
     'yii\\faker\\' => array($vendorDir . '/yiisoft/yii2-faker'),
     'yii\\debug\\' => array($vendorDir . '/yiisoft/yii2-debug'),
     'yii\\composer\\' => array($vendorDir . '/yiisoft/yii2-composer'),
-    'yii\\codeception\\' => array($vendorDir . '/yiisoft/yii2-codeception'),
-    'yii\\alipay\\' => array($vendorDir . '/yiisoft/yii2-alipay'),
-    'yii\\wxpay\\' => array($vendorDir . '/yiisoft/yii2-wxpay'),
-//    'yii\\bootstrap\\' => array($vendorDir . '/yiisoft/yii2-bootstrap'),
-//    'yii\\authclient\\' => array($vendorDir . '/yiisoft/yii2-authclient'),
-//    'yii\\httpclient\\' => array($vendorDir . '/yiisoft/yii2-httpclient'),
 
-//    'dosamigos\\qrcode\\' => array($vendorDir . '/yiisoft/yii2-qrcode'),
-//    'cebe\\markdown\\' => array($vendorDir . '/cebe/markdown'),
 
 
 );

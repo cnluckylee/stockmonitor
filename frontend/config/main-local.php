@@ -1,13 +1,9 @@
 <?php
 return [
     'components' => [
-        'db' => [
-            'class' => 'yii\db\Connection',
-            'dsn' => 'mysql:host=www.dhhtrade.com;dbname=ocean',
-            'username' => 'wayne',
-            'password' => 'jiang1221',
-            'charset' => 'utf8mb4',
-            'tablePrefix'=>'OC_',
+        'mongodb' => [
+            'class' => '\yii\mongodb\Connection',
+            'dsn' => 'mongodb://10.0.0.2:19879/jubi',
         ],
         'mailer' => [
             'class' => 'yii\swiftmailer\Mailer',

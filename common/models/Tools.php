@@ -523,7 +523,7 @@ class Tools
             $key = md5($s);
             $strshort = substr($key, 0, 3);
         }else
-             $strshort = substr($key, 0, 3);
+            $strshort = substr($key, 0, 3);
 
         $newid = $num * 983 + 1013;
         $strhex = self::Num2Str($newid);
@@ -826,9 +826,9 @@ class Tools
                     {
                         if(!$v['lng'] || $v['lat'] || $vv['lng'] || $vv['lat'])
                             continue;
-                       $d =  self::getDistance($v['lng'],$v['lat'],$vv['lng'],$vv['lat'],1);
-                       if($d>$dist)
-                           $dist = $d;
+                        $d =  self::getDistance($v['lng'],$v['lat'],$vv['lng'],$vv['lat'],1);
+                        if($d>$dist)
+                            $dist = $d;
                     }
                 }
             }
@@ -897,8 +897,8 @@ class Tools
         if(!is_numeric($time)){
             $time=strtotime($time);
         }
-       if($time<=0)
-           return '';
+        if($time<=0)
+            return '';
         if($op == 1)
             $t=time()-$time;
         else
@@ -1066,5 +1066,36 @@ class Tools
         if ($i[0] == 172 && $i[1] > 15 && $i[1] < 32) return true;
         if ($i[0] == 192 && $i[1] == 168) return true;
         return false;
+    }
+
+
+    /**
+     * 发送post请求
+     * @param string $url 请求地址
+     * @param array $post_data post键值对数据
+     * @return string
+     */
+    public  static function send_post($url, $post_data) {
+        $postdata = http_build_query($post_data);
+        $options = array(
+            'http' => array(
+                'method' => 'POST',
+                'header' => 'Content-type:application/x-www-form-urlencoded',
+                'content' => $postdata,
+                'timeout' => 15 * 60 // 超时时间（单位:s）
+            )
+        );
+        $context = stream_context_create($options);
+        $result = file_get_contents($url, false, $context);
+
+        return $result;
+    }
+
+    public static function Log($k,$v)
+    {
+        $myfile = fopen("/tmp/log.log", "a+");
+        $txt = $k.":".$v."\n";
+        fwrite($myfile, $txt);
+        fclose($myfile);
     }
 }
