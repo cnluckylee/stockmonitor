@@ -17,20 +17,45 @@ class JubiController extends Controller
 {
     public function actionAccount()
     {
-//        $this->layout = 'portrait';
-        $collection = Yii::$app->mongodb->getCollection('account');
-        $row = $collection->findOne();
-        unset($row['_id']);
-        return $this->render('jubi',['data'=>$row]);
+        $url = 'https://www.jubi.com/api/v1/balance/';
+        $nonce = date('y').time();
+        $sy = md5('@Bh*Z-3^DPK-!Jr4^-j;.;}-~cyp.-^ac&8-kZJDU');
+        $params = ['key'=>'ni5su-g43bt-zqknh-xs3cx-rxj36-ciaph-ub1z4','nonce'=>$nonce];
+        $str = http_build_query($params);
+        $signature = hash_hmac("sha256",$str,$sy);
+        $params['signature'] = $signature;
+        $page = Tools::send_post($url,$params);
+        $data = json_decode($page,true);
+        $account = [];
+        $account['uid'] = $data['uid'];
+        $account['key'] = 'ni5su-g43bt-zqknh-xs3cx-rxj36-ciaph-ub1z4';
+        $account['idkey'] = md5('@Bh*Z-3^DPK-!Jr4^-j;.;}-~cyp.-^ac&8-kZJDU');
+        $account['asset'] = $data['asset'];//RMB
+        $account['cny']  = $data['cny_balance'];//RMB
+        foreach($data as $k=>$num){
+            if((strpos($k,'balance') != false || strpos($k,'lock') != false) && $num>1) {
+                if(strpos($k,'balance') != false)
+                    $coin = str_replace('_balance','',$k);
+                else if(strpos($k,'lock') != false)
+                    $coin = str_replace('_lock','',$k);
+                if($num>0.1){
+                    $myticket['name'] = $coin;
+                    $myticket['count'] = $num;
+                    $account['data'][] = $myticket;
+                }
+            }
+        }
+        print_r($account);exit;
     }
 
 
 
-    public function getTickets()
+    public function actionTickets()
     {
         $url = 'https://www.jubi.com/api/v1/allticker/';
         $page = file_get_contents($url);
         $data = json_decode($page,true);
+        print_r($data);exit;
         return $data;
     }
 
@@ -45,7 +70,8 @@ class JubiController extends Controller
             $v['name'] = $k;
             $row = $collection->findOne(['name'=>$k]);
             if(!$row){
-                $v['maxsell'] = $v['minsell'] = $v['sell'];
+                $v['maxsell'] = $v['sell'];
+                $v['minsell'] = $v['sell'];
                 $collection->insert($v);
             }else{
                 if($row['maxsell']<$v['sell'])
