@@ -7,6 +7,10 @@
  */
 
 namespace frontend\controllers;
+use app\models\Account;
+use app\models\Order;
+use app\models\Reserve;
+use app\models\Tickets;
 use Yii;
 
 use yii\web\Controller;
@@ -17,102 +21,184 @@ class JubiController extends Controller
 {
     public function actionAccount()
     {
-        $url = 'https://www.jubi.com/api/v1/balance/';
-        $nonce = date('y').time();
-        $sy = md5('@Bh*Z-3^DPK-!Jr4^-j;.;}-~cyp.-^ac&8-kZJDU');
-        $params = ['key'=>'ni5su-g43bt-zqknh-xs3cx-rxj36-ciaph-ub1z4','nonce'=>$nonce];
-        $str = http_build_query($params);
-        $signature = hash_hmac("sha256",$str,$sy);
-        $params['signature'] = $signature;
-        $page = Tools::send_post($url,$params);
-        $data = json_decode($page,true);
-        $account = [];
-        $account['uid'] = $data['uid'];
-        $account['key'] = 'ni5su-g43bt-zqknh-xs3cx-rxj36-ciaph-ub1z4';
-        $account['idkey'] = md5('@Bh*Z-3^DPK-!Jr4^-j;.;}-~cyp.-^ac&8-kZJDU');
-        $account['asset'] = $data['asset'];//RMB
-        $account['cny']  = $data['cny_balance'];//RMB
-        foreach($data as $k=>$num){
-            if((strpos($k,'balance') != false || strpos($k,'lock') != false) && $num>1) {
-                if(strpos($k,'balance') != false)
-                    $coin = str_replace('_balance','',$k);
-                else if(strpos($k,'lock') != false)
-                    $coin = str_replace('_lock','',$k);
-                if($num>0.1){
-                    $myticket['name'] = $coin;
-                    $myticket['count'] = $num;
-                    $account['data'][] = $myticket;
-                }
-            }
-        }
-        print_r($account);exit;
+        $data = Account::getAccount();
+        print_r($data->attributes);exit;
     }
 
 
 
-    public function actionTickets()
+    public function getTickets()
     {
         $url = 'https://www.jubi.com/api/v1/allticker/';
         $page = file_get_contents($url);
         $data = json_decode($page,true);
-        print_r($data);exit;
         return $data;
     }
 
-    public function updateRecod()
+    public function actionUpdatetickets()
     {
         $tickets = $this->getTickets();
         //避免每次都要重新跑一次数据
-        $collection = Yii::$app->mongodb->getCollection('tickets');
         $result = [];
         foreach($tickets as $k=>$v)
         {
             $v['name'] = $k;
-            $row = $collection->findOne(['name'=>$k]);
+            $row = Tickets::findOne(['name'=>$k]);
             if(!$row){
+                $model = new Tickets();
                 $v['maxsell'] = $v['sell'];
                 $v['minsell'] = $v['sell'];
-                $collection->insert($v);
+                $model->attributes = $v;
+                $row = $model->save();
             }else{
-                if($row['maxsell']<$v['sell'])
+                $row->attributes = $v;
+                if($row->maxsell<$v['sell'])
                 {
                     //保存最高售价
-                    $v['maxsell'] = $v['sell'];
+                    $row->maxsell = $v['sell'];
                 }else{
-                    $v['maxsell'] = $row['maxsell'];
+                    $row->maxsell = $row['maxsell'];
                 }
-                if($row['minsell']>$v['sell']){
+                if($row->minsell>$v['sell']){
                     //保存最低售价
-                    $v['minsell'] = $v['sell'];
+                    $row->minsell = $v['sell'];
                 }else
-                    $v['minsell'] = $row['minsell'];
-                $collection->update(['_id'=>$row['_id']],$v);
+                    $row->minsell = $row['minsell'];
+                $row->updatedtime = date('Y-m-d H:i:s');
+                $d = $row->attributes;
+                unset($d['_id']);
+                Tickets::updateAll($row->attributes,['_id'=>$row->_id]);
             }
-            $result[$v['name']] = $v;
+            $reserve = Reserve::findOne(['coin'=>$k,'uid'=>Account::getUid()]);
+            if($reserve)
+            {
+                $percent = $reserve->percent;
+                if($row->maxsell*$percent<$v['sell'])
+                {
+                    $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
+                    $this->trade($count,$v['sell']*0.99,'sell',$k,$reserve->_id);
+                }
+            }
+            $result[$row->name] = $row->attributes;
         }
-        return $result;
+        print_r($result);exit;
+//        return $result;
     }
 
 
-    public function trade($amount,$price,$type,$coin)
+    public function actionBuy()
     {
+        $count = floatval(Tools::getParam('count'));
+        $price = Tools::getParam('price');
+        $type = Tools::getParam('type');
+        $coin = trim(Tools::getParam('coin'));
+        if(($count || $price) && $type && $coin)
+        {
+            $this->trade($count,$price,$type,$coin);
+        }
+    }
+
+    public function actionSell()
+    {
+        $count = floatval(Tools::getParam('count'));
+        $price = Tools::getParam('price');
+        $coin = trim(Tools::getParam('coin'));
+        if(($count || $price)  && $coin)
+        {
+            $this->trade($count,$price,"sell",$coin);
+        }
+    }
+
+
+    public function actionYuyue()
+    {
+        $count = floatval(Tools::getParam('count'));
+        $price = Tools::getParam('price');
+        $type = Tools::getParam('type');
+        $coin = trim(Tools::getParam('coin'));
+        $percent = floatval(Tools::getParam('diefu'));
+        $model = new Reserve();
+        $model->uid = Account::getUid();
+        $model->coin = $coin;
+        $model->type = $type;
+        $model->price = $price;
+        $model->count = $count;
+        $model->percent = $percent;
+        $model->createdtime = date('Y-m-d H:i:s');
+        $model->state = 1;
+        if($model->save())
+        {
+            exit("预约成功!");
+        }
+    }
+
+
+    public function trade($count=null,$price=null,$type,$coin,$yuyue_id = null)
+    {
+        if(!in_array($type,['sell','buy']))
+        {
+            exit("type 错误");
+        }
+        $url = 'https://www.jubi.com/api/v1/ticker/?coin='.$coin;
+        $page = file_get_contents($url);
+        $coindata = json_decode($page,true);
+        $account = Account::getAccount();
+        if($type == 'buy')
+        {
+            if($account->cny < $price){
+                exit("金额不足");
+            }else{
+                $price = $coindata['sell'];
+                if($price)
+                {
+                    $count = $price/$coindata['sell'];
+                }else if($count)
+                {
+                    $count = $count*$coindata['sell'];
+                }
+            }
+        }else if($type == 'sell')
+        {
+            $check = 1;
+            foreach($account->data as $k=>$v)
+            {
+                if($v['name'] == $coin && $v['count']>=$count)
+                {
+                    $check = 2;
+                }
+            }
+            if($check == 1)
+            {
+                exit("货币数量不足");
+            }
+            if(!$price)
+            {
+                $price = $coindata['buy'];
+            }
+        }
+
         //交易
         $url = 'https://www.jubi.com/api/v1/trade_add/';
-        $nonce = date('y').time();
-        $sy = md5('@Bh*Z-3^DPK-!Jr4^-j;.;}-~cyp.-^ac&8-kZJDU');
-        $params = ['key'=>'ni5su-g43bt-zqknh-xs3cx-rxj36-ciaph-ub1z4','nonce'=>$nonce,
-                    'amount'=>$amount,'price'=>$price,'type'=>$type,'coin'=>$coin
+        $nonce = Account::getNonce();
+        $params = ['key'=>Account::getKey(),'nonce'=>$nonce,
+                    'amount'=>$count,'price'=>$price,'type'=>$type,'coin'=>$coin
         ];
         $str = http_build_query($params);
-        $signature = hash_hmac("sha256",$str,$sy);
+        $signature = hash_hmac("sha256",$str,Account::getIdKey());
         $params['signature'] = $signature;
         $page = Tools::send_post($url,$params);
         $data = json_decode($page,true);
-        if($data && $data['id']>0)
+        if($data && $data['result'] == 1 && $data['id']>0)
         {
-            $collection = Yii::$app->mongodb->getCollection('order');
-            $datas = ['amount'=>$amount,'price'=>$price,'type'=>$type,'coin'=>$coin,'id'=>$data['id']];
-            $collection->insert($datas);
+            $model = new Order();
+            $datas = ['count'=>$count,'price'=>$price,'type'=>$type,'coin'=>$coin,'jid'=>$data['id']];
+            $model->attributes = $datas;
+            $model->save();
+        }
+
+        if($yuyue_id)
+        {
+            Reserve::updateAll(['state'=>2],['_id'=>$yuyue_id]);
         }
     }
 }
