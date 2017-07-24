@@ -90,11 +90,10 @@ class JubiController extends Controller
     {
         $count = floatval(Tools::getParam('count'));
         $price = Tools::getParam('price');
-        $type = Tools::getParam('type');
         $coin = trim(Tools::getParam('coin'));
-        if(($count || $price) && $type && $coin)
+        if(($count || $price) && $coin)
         {
-            $this->trade($count,$price,$type,$coin);
+            $this->trade($count,$price,"buy",$coin);
         }
     }
 
@@ -132,8 +131,17 @@ class JubiController extends Controller
         }
     }
 
+    /**
+     * 买 money为总金额
+     * 卖 money为单价
+     * @param null $count
+     * @param null $money
+     * @param $type
+     * @param $coin
+     * @param null $yuyue_id
+     */
 
-    public function trade($count=null,$price=null,$type,$coin,$yuyue_id = null)
+    public function trade($count=null,$money=null,$type,$coin,$yuyue_id = null)
     {
         if(!in_array($type,['sell','buy']))
         {
@@ -145,17 +153,17 @@ class JubiController extends Controller
         $account = Account::getAccount();
         if($type == 'buy')
         {
-            if($account->cny < $price){
+            if($account->cny < $money){
                 exit("金额不足");
             }else{
-                $price = $coindata['sell'];
-                if($price)
+                if($money)
                 {
-                    $count = $price/$coindata['sell'];
+                    $count = $money/$coindata['sell'];
                 }else if($count)
                 {
                     $count = $count*$coindata['sell'];
                 }
+                $price = $coindata['sell'];
             }
         }else if($type == 'sell')
         {
@@ -171,9 +179,12 @@ class JubiController extends Controller
             {
                 exit("货币数量不足");
             }
-            if(!$price)
+
+            if(!$money)
             {
                 $price = $coindata['buy'];
+            }else{
+                $price = $money;
             }
         }
 
