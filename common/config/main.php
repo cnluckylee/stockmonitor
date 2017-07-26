@@ -45,7 +45,7 @@ return [
 //            'class' => 'yii\redis\Connection',
 //            'hostname' => '10.0.0.2',
 //            'port' => 19889,
-//            'database' => 0,
+//            'database' => 1,
 //        ],
     ],
 ];
