@@ -86,6 +86,7 @@ class JubiController extends Controller
                     //保存最低售价
                     $row['minsell'] = $v['buy'];
                 }
+                $row = array_merge($row,$v);
                 $row['updatedtime'] = date('Y-m-d H:i:s');
                $result[$k] = $row;
             }
@@ -97,7 +98,7 @@ class JubiController extends Controller
                 if($type == 'sell')
                 {
                     try{
-                        echo $v['buy']/$row['maxsell'] ."\n";
+                        echo $v['buy'].'/'.$row['maxsell'].":".$v['buy']/$row['maxsell'] ."\n";
                         if($v['buy']/$row['maxsell']<$percent)
                         {
                             $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
@@ -128,15 +129,7 @@ class JubiController extends Controller
     }
 
 
-    public function sendMail($subject,$body)
-    {
-        $mail= Yii::$app->mailer->compose();
-        $mail->setTo('living10@126.com');
-        $mail->setSubject($subject);
-        $body = html_entity_decode($body);
-        $mail->setHtmlBody($body);    //发布可以带html标签的文本
-       echo $mail->send();
-    }
+
     public function actionUpdatetickets()
     {
         $page = $this->redis->get("jubi:tickets");
@@ -158,6 +151,7 @@ class JubiController extends Controller
         }
         sleep(30);
         unset($tickets);
+        echo "Update Time:".date("Y-m-d H:i:s")."\n";
         $this->runAction('updatetickets');
     }
 
@@ -287,5 +281,15 @@ class JubiController extends Controller
         {
             Reserve::updateAll(['state'=>2],['_id'=>$yuyue_id]);
         }
+    }
+
+    public function sendMail($subject,$body)
+    {
+        $mail= Yii::$app->mailer->compose();
+        $mail->setTo('living10@126.com');
+        $mail->setSubject($subject);
+        $body = html_entity_decode($body);
+        $mail->setHtmlBody($body);    //发布可以带html标签的文本
+        echo $mail->send();
     }
 }
