@@ -7,10 +7,10 @@
  */
 
 namespace frontend\controllers;
-use app\models\Account;
-use app\models\Order;
-use app\models\Reserve;
-use app\models\Tickets;
+use common\models\Account;
+use common\models\Order;
+use common\models\Reserve;
+use common\models\Tickets;
 use Yii;
 
 use yii\base\Exception;
