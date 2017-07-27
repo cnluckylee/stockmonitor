@@ -149,8 +149,8 @@ class JubiController extends Controller
                 Tickets::updateAll($v,['_id'=>$row->_id]);
             }
         }
-        sleep(30);
-        unset($tickets);
+//        sleep(30);
+//        unset($tickets);
 //        echo "Update Time:".date("Y-m-d H:i:s")."\n";
 //        $this->runAction('updatetickets');
     }
