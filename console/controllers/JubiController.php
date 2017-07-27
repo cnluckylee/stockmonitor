@@ -124,8 +124,8 @@ class JubiController extends Controller
         }
         $redis->set('jubi:tickets',json_encode($result));
         unset($result);
-        sleep(5);
-        $this->runAction('compare');
+//        sleep(8);
+//        $this->runAction('compare');
     }
 
 
@@ -151,8 +151,8 @@ class JubiController extends Controller
         }
         sleep(30);
         unset($tickets);
-        echo "Update Time:".date("Y-m-d H:i:s")."\n";
-        $this->runAction('updatetickets');
+//        echo "Update Time:".date("Y-m-d H:i:s")."\n";
+//        $this->runAction('updatetickets');
     }
 
 
