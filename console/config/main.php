@@ -14,6 +14,7 @@ return [
         'gii' => 'yii\gii\Module',
     ],
     'components' => [
+<<<<<<< HEAD
         'log' => [
             'targets' => [
                 [
@@ -34,6 +35,9 @@ return [
             'class' => '\yii\mongodb\Connection',
             'dsn' => 'mongodb://127.0.0.1:19879/jubi',
         ],
+=======
+
+>>>>>>> 7a7c61ea870a18d4326e5ff6ba3caa03129523e2
     ],
 
     'params' => $params,
