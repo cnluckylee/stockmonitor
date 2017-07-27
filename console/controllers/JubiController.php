@@ -19,6 +19,12 @@ use common\models\Tools;
 
 class JubiController extends Controller
 {
+    private $redis;
+    public function init()
+    {
+        $this->redis = Yii::$app->redis;
+    }
+
     public function actionAccount()
     {
         $data = Account::getAccount();
@@ -116,10 +122,9 @@ class JubiController extends Controller
             }
         }
         $redis->set('jubi:tickets',json_encode($result));
-
+        unset($result);
         sleep(5);
         $this->runAction('compare');
-//        return $result;
     }
 
 
@@ -134,9 +139,9 @@ class JubiController extends Controller
     }
     public function actionUpdatetickets()
     {
-        $tickets = $this->getTickets();
+        $page = $this->redis->get("jubi:tickets");
+        $tickets = json_decode($page,true);
         //避免每次都要重新跑一次数据
-        $result = [];
         foreach($tickets as $k=>$v)
         {
             $v['name'] = $k;
@@ -146,40 +151,14 @@ class JubiController extends Controller
                 $v['maxsell'] = $v['sell'];
                 $v['minsell'] = $v['sell'];
                 $model->attributes = $v;
-                $row = $model->save();
+                $model->save();
             }else{
-                $row->attributes = $v;
-                if($row->maxsell<$v['sell'])
-                {
-                    //保存最高售价
-                    $row->maxsell = $v['sell'];
-                }else{
-                    $row->maxsell = $row['maxsell'];
-                }
-                if($row->minsell>$v['sell']){
-                    //保存最低售价
-                    $row->minsell = $v['sell'];
-                }else
-                    $row->minsell = $row['minsell'];
-                $row->updatedtime = date('Y-m-d H:i:s');
-                $d = $row->attributes;
-                unset($d['_id']);
-                Tickets::updateAll($row->attributes,['_id'=>$row->_id]);
+                Tickets::updateAll($v,['_id'=>$row->_id]);
             }
-            $reserve = Reserve::findOne(['coin'=>$k,'uid'=>Account::getUid()]);
-            if($reserve)
-            {
-                $percent = $reserve->percent;
-                if($row->maxsell*$percent<$v['sell'])
-                {
-                    $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
-                    $this->trade($count,$v['sell']*0.99,'sell',$k,$reserve->_id);
-                }
-            }
-            $result[$row->name] = $row->attributes;
         }
-        print_r($result);exit;
-//        return $result;
+        sleep(30);
+        unset($tickets);
+        $this->runAction('updatetickets');
     }
 
 
