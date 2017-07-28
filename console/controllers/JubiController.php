@@ -90,7 +90,7 @@ class JubiController extends Controller
                 $row['updatedtime'] = date('Y-m-d H:i:s');
                $result[$k] = $row;
             }
-            $reserve = Reserve::findOne(['coin'=>$k,'uid'=>Account::getUid()]);
+            $reserve = Reserve::findOne(['coin'=>$k,'uid'=>Account::getUid(),'state'=>1]);
             if($reserve)
             {
                 $percent = $reserve->percent;
