@@ -36,6 +36,7 @@ class Order extends \yii\mongodb\ActiveRecord
             'type',
             'count',
             'amount',
+            'createdtime'
         ];
     }
 
@@ -45,7 +46,7 @@ class Order extends \yii\mongodb\ActiveRecord
     public function rules()
     {
         return [
-            [['jid', 'coin', 'type', 'count', 'amount'], 'safe']
+            [['jid', 'coin', 'type', 'count', 'amount','createdtime'], 'safe']
         ];
     }
 
@@ -61,6 +62,7 @@ class Order extends \yii\mongodb\ActiveRecord
             'type' => 'Type',
             'count' => 'Count',
             'amount' => 'Amount',
+            'createdtime' => 'Createdtime'
         ];
     }
 }
