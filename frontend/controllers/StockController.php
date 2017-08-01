@@ -7,6 +7,7 @@
  */
 
 namespace frontend\controllers;
+use common\models\Stock;
 use Yii;
 
 use yii\web\Controller;
@@ -14,104 +15,127 @@ use common\models\Tools;
 
 class StockController extends Controller
 {
-    public function actionAccount()
+    public function actionAdd()
     {
-        $url = 'https://www.jubi.com/api/v1/balance/';
-        $nonce = date('y').time();
-        $sy = md5('@Bh*Z-3^DPK-!Jr4^-j;.;}-~cyp.-^ac&8-kZJDU');
-        $params = ['key'=>'ni5su-g43bt-zqknh-xs3cx-rxj36-ciaph-ub1z4','nonce'=>$nonce];
-        $str = http_build_query($params);
-        $signature = hash_hmac("sha256",$str,$sy);
-        $params['signature'] = $signature;
-        $page = Tools::send_post($url,$params);
-        $data = json_decode($page,true);
-        $account = [];
-        $account['uid'] = $data['uid'];
-        $account['key'] = 'ni5su-g43bt-zqknh-xs3cx-rxj36-ciaph-ub1z4';
-        $account['idkey'] = md5('@Bh*Z-3^DPK-!Jr4^-j;.;}-~cyp.-^ac&8-kZJDU');
-        $account['asset'] = $data['asset'];//RMB
-        $account['cny']  = $data['cny_balance'];//RMB
-        foreach($data as $k=>$num){
-            if((strpos($k,'balance') != false || strpos($k,'lock') != false) && $num>1) {
-                if(strpos($k,'balance') != false)
-                    $coin = str_replace('_balance','',$k);
-                else if(strpos($k,'lock') != false)
-                    $coin = str_replace('_lock','',$k);
-                if($num>0.1){
-                    $myticket['name'] = $coin;
-                    $myticket['count'] = $num;
-                    $account['data'][] = $myticket;
-                }
-            }
-        }
-        print_r($account);exit;
+        $params = [];
+        $params['uid'] = 1;
+        $params['coin'] = Tools::getParam('coin');
+        $params['name'] = Tools::getParam('name');
+        $params['count'] = Tools::getParam('count');
+        $params['price'] = Tools::getParam('price');
+        $params['percent'] = Tools::getParam('percent');
+        $params['starttime'] = Tools::getParam('starttime');
+        $params['endtime'] = Tools::getParam('endtime');
+        $model = new Stock();
+        $model->attributes = $params;
+        $model->createdtime = date('Y-m-d H:i:s');
+        $model->save();
     }
 
-
-
-    public function actionTickets()
+    /**
+     * 每个5s执行一次
+     */
+    public function actionCompare()
     {
-        $url = 'https://www.jubi.com/api/v1/allticker/';
-        $page = file_get_contents($url);
-        $data = json_decode($page,true);
-        print_r($data);exit;
-        return $data;
-    }
-
-    public function updateRecod()
-    {
-        $tickets = $this->getTickets();
-        //避免每次都要重新跑一次数据
-        $collection = Yii::$app->mongodb->getCollection('tickets');
-        $result = [];
-        foreach($tickets as $k=>$v)
+        header("Content-type: text/html; charset=utf-8");
+        $mongoData = Stock::find()->all();
+        $list = [];
+        foreach($mongoData as $k=>$v)
         {
-            $v['name'] = $k;
-            $row = $collection->findOne(['name'=>$k]);
+            $list[] = $v->coin;
+        }
+        $url = 'http://hq.sinajs.cn/list='.implode(",",$list);
+        $page = $this->file_get_contents_utf8($url);
+        $preg = '/"(.*)";/';
+        preg_match_all($preg,$page,$out);
+        if(!isset($out[1]))
+            return ;
+        $preg_name = '/hq_str_(\w+)=/';
+        preg_match_all($preg_name,$page,$out2);
+        if(!isset($out2[1]))
+            return ;
+        $stocks = [];
+        foreach($out[1] as $k=>$v)
+        {
+            $a = explode(",",$v);
+            $code = $out2[1][$k];
+            $stocks[$code] = [
+                'code'=>$code,
+                'name'=>$a[0],
+                'kpprice'=>$a[1],
+                'yprice'=>$a[2],
+                'sell'=>$a[3],
+                'time'=>$a[30].' '.$a[31]
+            ];
+        }
+        $redis = Yii::$app->redis;
+        $page = $redis->get('jubi:stock');
+        $redisData = json_decode($page,true);
+        //避免每次都要重新跑一次数据
+        $result = [];
+        foreach($stocks as $code=>$v)
+        {
+            $row = isset($redisData[$code])?$redisData[$code]:"";
             if(!$row){
                 $v['maxsell'] = $v['sell'];
                 $v['minsell'] = $v['sell'];
-                $collection->insert($v);
+                $result[$code] = $v;
             }else{
-                if($row['maxsell']<$v['sell'])
+                if(!isset($row['maxsell'])){
+                    $row['maxsell'] = $v['sell'];
+                }else if($row['maxsell']<$v['sell'])
                 {
                     //保存最高售价
-                    $v['maxsell'] = $v['sell'];
-                }else{
-                    $v['maxsell'] = $row['maxsell'];
+                    $row['maxsell'] = $v['sell'];
                 }
-                if($row['minsell']>$v['sell']){
+
+                if(!isset($row['minsell']))
+                {
+                    $row['minsell'] = $v['sell'];
+                }else if($row['minsell']>$v['sell']){
                     //保存最低售价
-                    $v['minsell'] = $v['sell'];
-                }else
-                    $v['minsell'] = $row['minsell'];
-                $collection->update(['_id'=>$row['_id']],$v);
+                    $row['minsell'] = $v['sell'];
+                }
+                $row['updatedtime'] = date('Y-m-d H:i:s');
+                $result[$code] = $row;
             }
-            $result[$v['name']] = $v;
+            $reserve = Reserve::findOne(['coin'=>$k,'uid'=>Account::getUid()]);
+            if($reserve)
+            {
+                $percent = $reserve->percent;
+                $type = $reserve->type;
+                if($type == 'sell')
+                {
+                    try{
+                        echo $v['buy']/$row['maxsell'] ."<br>";
+                        if($v['buy']/$row['maxsell']<$percent)
+                        {
+                            $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
+                            $money = $count * $v['buy']*0.99;
+                            $body = "卖出数量".$count.',卖出价：'.$v['buy']*0.99.'，最高价：'.$row['maxsell'].',待收款:'.$money;
+                            $this->sendMail($k."币卖出提醒",$body);
+                        }
+                    }catch(Exception $e)
+                    {
+                        print_r($e);exit;
+                    }
+
+                }else if($type == 'buy')
+                {
+                    if($row['minsell']*$percent<$v['sell'])
+                    {
+                        $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
+//                        $this->trade($count,$v['sell']*0.99,'buy',$k,$reserve->_id);
+                    }
+                }
+            }
         }
-        return $result;
+        $redis->set('jubi:stock',json_encode($result));
     }
 
-
-    public function trade($amount,$price,$type,$coin)
-    {
-        //交易
-        $url = 'https://www.jubi.com/api/v1/trade_add/';
-        $nonce = date('y').time();
-        $sy = md5('@Bh*Z-3^DPK-!Jr4^-j;.;}-~cyp.-^ac&8-kZJDU');
-        $params = ['key'=>'ni5su-g43bt-zqknh-xs3cx-rxj36-ciaph-ub1z4','nonce'=>$nonce,
-                    'amount'=>$amount,'price'=>$price,'type'=>$type,'coin'=>$coin
-        ];
-        $str = http_build_query($params);
-        $signature = hash_hmac("sha256",$str,$sy);
-        $params['signature'] = $signature;
-        $page = Tools::send_post($url,$params);
-        $data = json_decode($page,true);
-        if($data && $data['id']>0)
-        {
-            $collection = Yii::$app->mongodb->getCollection('order');
-            $datas = ['amount'=>$amount,'price'=>$price,'type'=>$type,'coin'=>$coin,'id'=>$data['id']];
-            $collection->insert($datas);
-        }
+    function file_get_contents_utf8($fn) {
+        $content = file_get_contents($fn);
+        return mb_convert_encoding($content, 'UTF-8',
+            mb_detect_encoding($content, 'UTF-8, GB2312', true));
     }
 }
