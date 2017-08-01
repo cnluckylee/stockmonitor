@@ -291,6 +291,6 @@ class JubiController extends Controller
         $mail->setSubject($subject);
         $body = html_entity_decode($body);
         $mail->setHtmlBody($body);    //发布可以带html标签的文本
-        echo $mail->send();
+        $mail->send();
     }
 }

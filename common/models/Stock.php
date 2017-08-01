@@ -10,7 +10,6 @@ use Yii;
  * @property \MongoId|string $_id
  * @property mixed $uid
  * @property mixed $coin
- * @property mixed $name
  * @property mixed $count
  * @property mixed $price
  * @property mixed $createdtime
@@ -18,10 +17,10 @@ use Yii;
  * @property mixed $percent
  * @property mixed $starttime
  * @property mixed $endtime
+ * @property mixed $state
  */
 class Stock extends \yii\mongodb\ActiveRecord
 {
-    //uid,coin,count,price,createdtime,type,percent,starttime,endtime
     /**
      * @inheritdoc
      */
@@ -39,7 +38,6 @@ class Stock extends \yii\mongodb\ActiveRecord
             '_id',
             'uid',
             'coin',
-            'name',
             'count',
             'price',
             'createdtime',
@@ -47,6 +45,7 @@ class Stock extends \yii\mongodb\ActiveRecord
             'percent',
             'starttime',
             'endtime',
+            'state',
         ];
     }
 
@@ -56,7 +55,7 @@ class Stock extends \yii\mongodb\ActiveRecord
     public function rules()
     {
         return [
-            [['uid', 'coin','name', 'count', 'price', 'createdtime', 'type', 'percent', 'starttime', 'endtime'], 'safe']
+            [['uid', 'coin', 'count', 'price', 'createdtime', 'type', 'percent', 'starttime', 'endtime', 'state'], 'safe']
         ];
     }
 
@@ -69,7 +68,6 @@ class Stock extends \yii\mongodb\ActiveRecord
             '_id' => 'ID',
             'uid' => 'Uid',
             'coin' => 'Coin',
-            'name' => 'Name',
             'count' => 'Count',
             'price' => 'Price',
             'createdtime' => 'Createdtime',
@@ -77,6 +75,7 @@ class Stock extends \yii\mongodb\ActiveRecord
             'percent' => 'Percent',
             'starttime' => 'Starttime',
             'endtime' => 'Endtime',
+            'state' => 'State',
         ];
     }
 }

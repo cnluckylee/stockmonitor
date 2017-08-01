@@ -6,11 +6,11 @@
  * Time: 7:05
  */
 
-namespace frontend\controllers;
+namespace console\controllers;
 use common\models\Stock;
 use Yii;
 
-use yii\web\Controller;
+use yii\console\Controller;
 use common\models\Tools;
 
 class StockController extends Controller
@@ -120,7 +120,7 @@ class StockController extends Controller
                 if($type == 'sell')
                 {
                     try{
-                        echo $name.' '.$v['sell']/$row['maxsell'] ."<br>";
+                        echo $name.' '.$v['sell']/$row['maxsell'] ."\n";
                         if($v['sell']/$row['maxsell']<$percent)
                         {
                             $count = $reserve->count;
