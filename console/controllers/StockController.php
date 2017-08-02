@@ -83,15 +83,19 @@ class StockController extends Controller
         $redis = Yii::$app->redis;
         $page = $redis->get('jubi:stock');
         $redisData = json_decode($page,true);
+
         //避免每次都要重新跑一次数据
         $result = [];
         foreach($stocks as $code=>$v)
         {
-            $row = isset($redisData[$code])?$redisData[$code]:"";
+            if($v['sell']<1)
+                continue;
+            $row = isset($redisData[$code])?$redisData[$code]:[];
             $name = $v['name'];
             if(!$row){
                 $v['maxsell'] = $v['sell'];
                 $v['minsell'] = $v['sell'];
+                $row = $v;
                 $result[$code] = $v;
             }else{
                 if(!isset($row['maxsell'])){
@@ -112,7 +116,7 @@ class StockController extends Controller
                 $row['updatedtime'] = date('Y-m-d H:i:s');
                 $result[$code] = $row;
             }
-            $reserve = isset($stocklists[$code])?$stocklists[$code]:"";
+            $reserve = isset($stocklists[$code])?$stocklists[$code]:[];
             if($reserve)
             {
                 $percent = $reserve->percent;
@@ -138,14 +142,15 @@ class StockController extends Controller
 
                 }else if($type == 'buy')
                 {
-                    if($row['minsell']*$percent<$v['sell'])
-                    {
-//                        $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
-//                        $this->trade($count,$v['sell']*0.99,'buy',$k,$reserve->_id);
-                    }
+//                    if($row['minsell']*$percent<$v['sell'])
+//                    {
+////                        $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
+////                        $this->trade($count,$v['sell']*0.99,'buy',$k,$reserve->_id);
+//                    }
                 }
             }
         }
+
         $redis->set('jubi:stock',json_encode($result));
     }
 
