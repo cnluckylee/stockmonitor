@@ -144,4 +144,14 @@ class Account extends \yii\mongodb\ActiveRecord
         }
         return $model;
     }
+
+    public static function getCoinCountByName($coin)
+    {
+        $account = self::getAccount();
+        foreach($account['data'] as $k=>$v)
+        {
+            if($v['name'] == $coin)
+                return $v['count'];
+        }
+    }
 }

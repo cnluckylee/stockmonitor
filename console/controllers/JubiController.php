@@ -186,7 +186,7 @@ class JubiController extends Controller
         $price = Tools::getParam('price');
         $type = Tools::getParam('type');
         $coin = trim(Tools::getParam('coin'));
-        $percent = floatval(Tools::getParam('diefu'));
+        $percent = floatval(Tools::getParam('percent'));
         $model = new Reserve();
         $model->uid = Account::getUid();
         $model->coin = $coin;
@@ -276,8 +276,10 @@ class JubiController extends Controller
             $datas = ['count'=>$count,'price'=>$price,'type'=>$type,'coin'=>$coin,'jid'=>$data['id'],'createdtime'=>date("Y-m-d H:i:s")];
             $model->attributes = $datas;
             $model->save();
+            echo "交易成功";
+        }else{
+            exit("交易失败");
         }
-
         if($yuyue_id)
         {
             Reserve::updateAll(['state'=>2],['_id'=>$yuyue_id]);

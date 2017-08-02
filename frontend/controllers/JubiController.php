@@ -211,7 +211,8 @@ class JubiController extends Controller
         $price = Tools::getParam('price');
         $type = Tools::getParam('type');
         $coin = trim(Tools::getParam('coin'));
-        $percent = floatval(Tools::getParam('diefu'));
+        $percent = floatval(Tools::getParam('percent'));
+        $count = $count?$count:Account::getCoinCountByName($coin);
         $model = new Reserve();
         $model->uid = Account::getUid();
         $model->coin = $coin;
@@ -307,6 +308,9 @@ class JubiController extends Controller
             $datas = ['count'=>$count,'price'=>$price,'type'=>$type,'coin'=>$coin,'jid'=>$data['id']];
             $model->attributes = $datas;
             $model->save();
+            echo "交易成功";
+        }else{
+            exit("交易失败");
         }
 
         if($yuyue_id)
