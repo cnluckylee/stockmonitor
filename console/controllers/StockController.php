@@ -124,7 +124,7 @@ class StockController extends Controller
                 if($type == 'sell')
                 {
                     try{
-                        echo $name.' '.$v['sell']/$row['maxsell'] ."\n";
+                        echo $name.' '.number_format($v['sell']/$row['maxsell'],3) ."\n";
                         if($v['sell']/$row['maxsell']<$percent)
                         {
                             $count = $reserve->count;
