@@ -98,7 +98,7 @@ class JubiController extends Controller
                 if($type == 'sell')
                 {
                     try{
-                        echo $k.":".$v['buy'].'/'.$row['maxsell'].":".$v['buy']/$row['maxsell'] ."\n";
+                        echo $k.":".$v['buy'].'/'.$row['maxsell'].":".number_format($v['buy']/$row['maxsell'],3) ."\n";
                         if($v['buy']/$row['maxsell']<$percent)
                         {
                             $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
