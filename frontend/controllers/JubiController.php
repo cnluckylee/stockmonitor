@@ -118,9 +118,87 @@ class JubiController extends Controller
             }
         }
         $redis->set('jubi:tickets',json_encode($result));
+        echo json_encode($result);
+        exit;
 //        return $result;
     }
 
+    /**
+     * 每个5s执行一次
+     */
+    public function actionCompare2()
+    {
+        $tickets = $this->getTickets();
+        $redis = Yii::$app->redis;
+        $page = $redis->get('jubi:tickets');
+        $redisData = json_decode($page,true);
+        //避免每次都要重新跑一次数据
+        $result = [];
+        foreach($tickets as $k=>$v)
+        {
+            $v['name'] = $k;
+            $row = isset($redisData[$k])?$redisData[$k]:"";
+            if(!$row){
+                $v['maxsell'] = $v['buy'];
+                $v['minsell'] = $v['buy'];
+                $result[$k] = $v;
+            }else{
+                if(!isset($row['maxsell'])){
+                    $row['maxsell'] = $v['buy'];
+                }else if($row['maxsell']<$v['buy'])
+                {
+                    //保存最高售价
+                    $row['maxsell'] = $v['buy'];
+                }
+
+                if(!isset($row['minsell']))
+                {
+                    $row['minsell'] = $v['buy'];
+                }else if($row['minsell']>$v['buy']){
+                    //保存最低售价
+                    $row['minsell'] = $v['buy'];
+                }
+                $row['updatedtime'] = date('Y-m-d H:i:s');
+                $result[$k] = $row;
+            }
+            $reserve = Reserve::findOne(['coin'=>$k,'uid'=>Account::getUid()]);
+            if($reserve)
+            {
+                $percent = $reserve->percent;
+                $type = $reserve->type;
+                if($type == 'sell')
+                {
+
+                    try{
+                        echo $k.":".$v['buy']/$row['maxsell'] ."<br>";
+                        if($v['buy']/$row['maxsell']<$percent)
+                        {
+                            $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
+                            $money = $count * $v['buy']*0.99;
+                            $body = "卖出数量".$count.',卖出价：'.$v['buy']*0.99.'，最高价：'.$row['maxsell'].',待收款:'.$money;
+                            $this->sendMail($k."币卖出提醒",$body);
+                            $this->trade($count,$v['buy']*0.99,'sell',$k,$reserve->_id);
+                        }
+                    }catch(Exception $e)
+                    {
+                        print_r($e);exit;
+                    }
+
+                }else if($type == 'buy')
+                {
+                    if($row['minsell']*$percent<$v['sell'])
+                    {
+                        $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
+//                        $this->trade($count,$v['sell']*0.99,'buy',$k,$reserve->_id);
+                    }
+                }
+            }
+        }
+        $redis->set('jubi:tickets',json_encode($result));
+        echo json_encode($result);
+        exit;
+//        return $result;
+    }
 
     public function sendMail($subject,$body)
     {

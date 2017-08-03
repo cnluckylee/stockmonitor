@@ -70,6 +70,7 @@ class JubiController extends Controller
                 $v['maxsell'] = $v['buy'];
                 $v['minsell'] = $v['buy'];
                 $result[$k] = $v;
+                $row = $v;
             }else{
                 if(!isset($row['maxsell'])){
                     $row['maxsell'] = $v['buy'];
