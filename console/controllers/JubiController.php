@@ -134,7 +134,7 @@ class JubiController extends Controller
         }
         $redis->set('jubi:tickets',json_encode($result));
         unset($result);
-        exit(1);
+//        exit(1);
 //        sleep(8);
 //        $this->runAction('compare');
     }
