@@ -123,7 +123,6 @@ class JubiController extends Controller
                     }
                 }
             }
-
             $sendmallcontroll = 'sendmall:'.date("Ymd");
             if(($row['maxsell']/$row['minsell'])>1.14 && $redis->sadd($sendmallcontroll,'zjtx:'.$k))
             {
@@ -286,9 +285,13 @@ class JubiController extends Controller
             $datas = ['count'=>$count,'price'=>$price,'type'=>$type,'coin'=>$coin,'jid'=>$data['id'],'createdtime'=>date("Y-m-d H:i:s")];
             $model->attributes = $datas;
             $model->save();
-            echo "交易成功";
+            $subject = $coin."交易成功";
+            $body ="总价:".$price*$count."; 数量:".$count."; 价格:".$price."; 类型:".$type."; 名称:".$coin."; 时间:".date("Y-m-d H:i:s");
+            $this->sendMail($subject,$body);
         }else{
-            exit("交易失败");
+            $subject = $coin."交易失败";
+            $body ="总价:".$price*$count."; 数量:".$count."; 价格:".$price."; 类型:".$type."; 名称:".$coin."; 时间:".date("Y-m-d H:i:s");
+            $this->sendMail($subject,$body);
         }
         if($yuyue_id)
         {

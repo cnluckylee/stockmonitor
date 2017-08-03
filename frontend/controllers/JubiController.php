@@ -91,21 +91,16 @@ class JubiController extends Controller
                 $type = $reserve->type;
                 if($type == 'sell')
                 {
-                    try{
-//                        echo $k.":".$v['buy']/$row['maxsell'] ."<br>";
-                        if($v['buy']/$row['maxsell']<$percent)
-                        {
-                            $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
-                            $money = $count * $v['buy']*0.99;
-                            $body = "卖出数量".$count.',卖出价：'.$v['buy']*0.99.'，最高价：'.$row['maxsell'].',待收款:'.$money;
-                            $this->sendMail($k."币卖出提醒",$body);
-                            $this->trade($count,$v['buy']*0.99,'sell',$k,$reserve->_id);
-                        }
-                    }catch(Exception $e)
-                    {
-                        print_r($e);exit;
-                    }
 
+                    echo $k.":".$v['buy']/$row['maxsell'] ."<br>";
+                    if($v['buy']/$row['maxsell']<$percent)
+                    {
+                        $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
+                        $money = $count * $v['buy']*0.99;
+                        $body = "卖出数量".$count.',卖出价：'.$v['buy']*0.99.'，最高价：'.$row['maxsell'].',待收款:'.$money;
+                        $this->sendMail($k."币卖出提醒",$body);
+                        $this->trade($count,$v['buy']*0.99,'sell',$k,$reserve->_id);
+                    }
                 }else if($type == 'buy')
                 {
                     if($row['minsell']*$percent<$v['sell'])
@@ -318,7 +313,9 @@ class JubiController extends Controller
             $model->save();
             echo "交易成功";
         }else{
-            exit("交易失败");
+            $subject = $coin."交易失败";
+            $body ="总价:".$price*$count."; 数量:".$count."; 价格:".$price."; 类型:".$type."; 名称:".$coin."; 时间:".date("Y-m-d H:i:s");
+            $this->sendMail($subject,$body);
         }
 
         if($yuyue_id)
