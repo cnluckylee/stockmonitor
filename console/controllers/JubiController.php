@@ -124,7 +124,7 @@ class JubiController extends Controller
                 }
             }
             $sendmallcontroll = 'sendmall:'.date("Ymd");
-            if(($row['maxsell']/$row['minsell'])>1.14 && $redis->sadd($sendmallcontroll,'zjtx:'.$k))
+            if($row['minsell']>0 && ($row['maxsell']/$row['minsell'])>1.14 && $redis->sadd($sendmallcontroll,'zjtx:'.$k))
             {
                 $zf = number_format($row['maxsell']/$row['minsell']-1,4)*100;
                 $body = '卖出价：'.$v['buy'].'，涨幅：'.$zf."%";

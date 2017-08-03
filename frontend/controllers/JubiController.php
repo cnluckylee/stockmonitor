@@ -7,19 +7,24 @@
  */
 
 namespace frontend\controllers;
+use Yii;
+use yii\web\Controller;
 use common\models\Account;
 use common\models\Order;
 use common\models\Reserve;
 use common\models\Tickets;
-use Yii;
 
 use yii\base\Exception;
-use yii\web\Controller;
 use common\models\Tools;
-use yii\mongodb\Query;
 
 class JubiController extends Controller
 {
+    private $redis;
+    public function init()
+    {
+        $this->redis = Yii::$app->redis;
+    }
+
     public function actionAccount()
     {
         $data = Account::getAccount();
@@ -65,6 +70,7 @@ class JubiController extends Controller
                 $v['maxsell'] = $v['buy'];
                 $v['minsell'] = $v['buy'];
                 $result[$k] = $v;
+                $row = $v;
             }else{
                 if(!isset($row['maxsell'])){
                     $row['maxsell'] = $v['buy'];
@@ -81,26 +87,33 @@ class JubiController extends Controller
                     //保存最低售价
                     $row['minsell'] = $v['buy'];
                 }
+                $row = array_merge($row,$v);
                 $row['updatedtime'] = date('Y-m-d H:i:s');
-               $result[$k] = $row;
+                $result[$k] = $row;
             }
-            $reserve = Reserve::findOne(['coin'=>$k,'uid'=>Account::getUid()]);
+            $reserve = Reserve::findOne(['coin'=>$k,'uid'=>Account::getUid(),'state'=>1]);
             if($reserve)
             {
                 $percent = $reserve->percent;
                 $type = $reserve->type;
                 if($type == 'sell')
                 {
-
-                    echo $k.":".$v['buy']/$row['maxsell'] ."<br>";
-                    if($v['buy']/$row['maxsell']<$percent)
+                    try{
+                        echo $k.":".$v['buy'].'/'.$row['maxsell'].":".number_format($v['buy']/$row['maxsell'],3) ."\n";
+                        if($v['buy']/$row['maxsell']<$percent)
+                        {
+                            $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
+                            $money = $count * $v['buy']*0.99;
+                            $body = $k." 卖出数量".$count.',卖出价：'.$v['buy']*0.99.'，最高价：'.$row['maxsell'].',待收款:'.$money;
+                            Reserve::updateAll(['state'=>2],['_id'=>$reserve->_id]);
+                            $this->sendMail($k."币卖出提醒",$body);
+                            $this->trade($count,$v['buy']*0.99,'sell',$k,$reserve->_id);
+                        }
+                    }catch(Exception $e)
                     {
-                        $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
-                        $money = $count * $v['buy']*0.99;
-                        $body = "卖出数量".$count.',卖出价：'.$v['buy']*0.99.'，最高价：'.$row['maxsell'].',待收款:'.$money;
-                        $this->sendMail($k."币卖出提醒",$body);
-                        $this->trade($count,$v['buy']*0.99,'sell',$k,$reserve->_id);
+                        print_r($e);exit;
                     }
+
                 }else if($type == 'buy')
                 {
                     if($row['minsell']*$percent<$v['sell'])
@@ -111,7 +124,7 @@ class JubiController extends Controller
                 }
             }
             $sendmallcontroll = 'sendmall:'.date("Ymd");
-            if(($row['maxsell']/$row['minsell'])>1.14 && $redis->sadd($sendmallcontroll,'zjtx:'.$k))
+            if($row['minsell']>0 && ($row['maxsell']/$row['minsell'])>1.14 && $redis->sadd($sendmallcontroll,'zjtx:'.$k))
             {
                 $zf = number_format($row['maxsell']/$row['minsell']-1,4)*100;
                 $body = '卖出价：'.$v['buy'].'，涨幅：'.$zf."%";
@@ -119,26 +132,19 @@ class JubiController extends Controller
             }
         }
         $redis->set('jubi:tickets',json_encode($result));
-        echo json_encode($result);
-        exit;
-//        return $result;
+        unset($result);
+//        exit(1);
+//        sleep(8);
+//        $this->runAction('compare');
     }
 
 
-    public function sendMail($subject,$body)
-    {
-        $mail= Yii::$app->mailer->compose();
-        $mail->setTo('living10@126.com');
-        $mail->setSubject($subject);
-        $body = html_entity_decode($body);
-        $mail->setHtmlBody($body);    //发布可以带html标签的文本
-        $mail->send();
-    }
+
     public function actionUpdatetickets()
     {
-        $tickets = $this->getTickets();
+        $page = $this->redis->get("jubi:tickets");
+        $tickets = json_decode($page,true);
         //避免每次都要重新跑一次数据
-        $result = [];
         foreach($tickets as $k=>$v)
         {
             $v['name'] = $k;
@@ -148,40 +154,15 @@ class JubiController extends Controller
                 $v['maxsell'] = $v['sell'];
                 $v['minsell'] = $v['sell'];
                 $model->attributes = $v;
-                $row = $model->save();
+                $model->save();
             }else{
-                $row->attributes = $v;
-                if($row->maxsell<$v['sell'])
-                {
-                    //保存最高售价
-                    $row->maxsell = $v['sell'];
-                }else{
-                    $row->maxsell = $row['maxsell'];
-                }
-                if($row->minsell>$v['sell']){
-                    //保存最低售价
-                    $row->minsell = $v['sell'];
-                }else
-                    $row->minsell = $row['minsell'];
-                $row->updatedtime = date('Y-m-d H:i:s');
-                $d = $row->attributes;
-                unset($d['_id']);
-                Tickets::updateAll($row->attributes,['_id'=>$row->_id]);
+                Tickets::updateAll($v,['_id'=>$row->_id]);
             }
-            $reserve = Reserve::findOne(['coin'=>$k,'uid'=>Account::getUid()]);
-            if($reserve)
-            {
-                $percent = $reserve->percent;
-                if($row->maxsell*$percent<$v['sell'])
-                {
-                    $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
-                    $this->trade($count,$v['sell']*0.99,'sell',$k,$reserve->_id);
-                }
-            }
-            $result[$row->name] = $row->attributes;
         }
-        print_r($result);exit;
-//        return $result;
+//        sleep(30);
+//        unset($tickets);
+//        echo "Update Time:".date("Y-m-d H:i:s")."\n";
+//        $this->runAction('updatetickets');
     }
 
 
@@ -215,7 +196,6 @@ class JubiController extends Controller
         $type = Tools::getParam('type');
         $coin = trim(Tools::getParam('coin'));
         $percent = floatval(Tools::getParam('percent'));
-        $count = $count?$count:Account::getCoinCountByName($coin);
         $model = new Reserve();
         $model->uid = Account::getUid();
         $model->coin = $coin;
@@ -273,7 +253,6 @@ class JubiController extends Controller
                 if($v['name'] == $coin && $v['count']>=$count)
                 {
                     $check = 2;
-
                     if(!$count)
                     {
                         $count = $v['count'];
@@ -291,14 +270,13 @@ class JubiController extends Controller
             }else{
                 $price = $money;
             }
-
         }
 
         //交易
         $url = 'https://www.jubi.com/api/v1/trade_add/';
         $nonce = Account::getNonce();
         $params = ['key'=>Account::getKey(),'nonce'=>$nonce,
-                    'amount'=>$count,'price'=>$price,'type'=>$type,'coin'=>$coin
+            'amount'=>$count,'price'=>$price,'type'=>$type,'coin'=>$coin
         ];
         $str = http_build_query($params);
         $signature = hash_hmac("sha256",$str,Account::getIdKey());
@@ -308,19 +286,30 @@ class JubiController extends Controller
         if($data && $data['result'] == 1 && $data['id']>0)
         {
             $model = new Order();
-            $datas = ['count'=>$count,'price'=>$price,'type'=>$type,'coin'=>$coin,'jid'=>$data['id']];
+            $datas = ['count'=>$count,'price'=>$price,'type'=>$type,'coin'=>$coin,'jid'=>$data['id'],'createdtime'=>date("Y-m-d H:i:s")];
             $model->attributes = $datas;
             $model->save();
-            echo "交易成功";
+            $subject = $coin."交易成功";
+            $body ="总价:".$price*$count."; 数量:".$count."; 价格:".$price."; 类型:".$type."; 名称:".$coin."; 时间:".date("Y-m-d H:i:s");
+            $this->sendMail($subject,$body);
         }else{
             $subject = $coin."交易失败";
             $body ="总价:".$price*$count."; 数量:".$count."; 价格:".$price."; 类型:".$type."; 名称:".$coin."; 时间:".date("Y-m-d H:i:s");
             $this->sendMail($subject,$body);
         }
-
         if($yuyue_id)
         {
             Reserve::updateAll(['state'=>2],['_id'=>$yuyue_id]);
         }
+    }
+
+    public function sendMail($subject,$body)
+    {
+        $mail= Yii::$app->mailer->compose();
+        $mail->setTo('living10@126.com');
+        $mail->setSubject($subject);
+        $body = html_entity_decode($body);
+        $mail->setHtmlBody($body);    //发布可以带html标签的文本
+        $mail->send();
     }
 }
