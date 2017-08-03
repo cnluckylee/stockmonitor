@@ -123,9 +123,18 @@ class JubiController extends Controller
                     }
                 }
             }
+
+            $sendmallcontroll = 'sendmall:'.date("Ymd");
+            if(($row['maxsell']/$row['minsell'])>1.14 && $redis->sadd($sendmallcontroll,'zjtx:'.$k))
+            {
+                $zf = number_format($row['maxsell']/$row['minsell']-1,4)*100;
+                $body = '卖出价：'.$v['buy'].'，涨幅：'.$zf."%";
+                $this->sendMail($k."币猛涨提醒",$body);
+            }
         }
         $redis->set('jubi:tickets',json_encode($result));
         unset($result);
+        exit(1);
 //        sleep(8);
 //        $this->runAction('compare');
     }
