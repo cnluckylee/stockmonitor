@@ -295,7 +295,7 @@ class JubiController extends Controller
         }
         if($yuyue_id)
         {
-            Reserve::updateAll(['state'=>2],['_id'=>$yuyue_id]);
+            Reserve::updateAll(['state'=>2,'updatedtime'=>date('Y-m-d H:i:s')],['_id'=>$yuyue_id]);
         }
     }
 

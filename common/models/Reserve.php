@@ -39,6 +39,7 @@ class Reserve extends \yii\mongodb\ActiveRecord
             'count',
             'price',
             'createdtime',
+            'updatedtime',
             'type',
             'percent',
             'state',
@@ -51,7 +52,7 @@ class Reserve extends \yii\mongodb\ActiveRecord
     public function rules()
     {
         return [
-            [['uid', 'coin', 'count', 'price', 'createdtime', 'type', 'percent', 'state'], 'safe']
+            [['uid', 'coin', 'count', 'price', 'createdtime','updatedtime', 'type', 'percent', 'state'], 'safe']
         ];
     }
 
