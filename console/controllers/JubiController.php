@@ -103,11 +103,11 @@ class JubiController extends Controller
                         if($v['buy']/$row['maxsell']<$percent)
                         {
                             $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
-                            $money = $count * $v['buy']*0.99;
-                            $body = $k." 卖出数量".$count.',卖出价：'.$v['buy']*0.99.'，最高价：'.$row['maxsell'].',待收款:'.$money;
+                            $money = $count * $v['buy'];
+                            $body = $k." 卖出数量".$count.',卖出价：'.$v['buy'].'，最高价：'.$row['maxsell'].',待收款:'.$money;
                             Reserve::updateAll(['state'=>2],['_id'=>$reserve->_id]);
                             $this->sendMail($k."币卖出提醒",$body);
-                            $this->trade($count,$v['buy']*0.99,'sell',$k,$reserve->_id);
+                            $this->trade($count,$v['buy'],'sell',$k,$reserve->_id);
                         }
                     }catch(Exception $e)
                     {

@@ -104,10 +104,10 @@ class JubiController extends Controller
                         {
                             $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
                             $money = $count * $v['buy']*0.99;
-                            $body = $k." 卖出数量".$count.',卖出价：'.$v['buy']*0.99.'，最高价：'.$row['maxsell'].',待收款:'.$money;
+                            $body = $k." 卖出数量".$count.',卖出价：'.$v['buy'].'，最高价：'.$row['maxsell'].',待收款:'.$money;
                             Reserve::updateAll(['state'=>2],['_id'=>$reserve->_id]);
                             $this->sendMail($k."币卖出提醒",$body);
-                            $this->trade($count,$v['buy']*0.99,'sell',$k,$reserve->_id);
+                            $this->trade($count,$v['buy'],'sell',$k,$reserve->_id);
                         }
                     }catch(Exception $e)
                     {
@@ -271,7 +271,8 @@ class JubiController extends Controller
                 $price = $money;
             }
         }
-
+        $price = floatval($price)+0;
+        $count = floatval($count)+0;
         //交易
         $url = 'https://www.jubi.com/api/v1/trade_add/';
         $nonce = Account::getNonce();
