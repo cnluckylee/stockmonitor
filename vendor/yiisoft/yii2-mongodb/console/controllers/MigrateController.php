@@ -28,18 +28,18 @@ use yii\helpers\ArrayHelper;
  *
  * In order to enable this command you should adjust the configuration of your console application:
  *
- * ~~~
+ * ```php
  * return [
  *     // ...
  *     'controllerMap' => [
  *         'mongodb-migrate' => 'yii\mongodb\console\controllers\MigrateController'
  *     ],
  * ];
- * ~~~
+ * ```
  *
  * Below are some common usages of this command:
  *
- * ~~~
+ * ```php
  * # creates a new migration named 'create_user_collection'
  * yii mongodb-migrate/create create_user_collection
  *
@@ -48,7 +48,25 @@ use yii\helpers\ArrayHelper;
  *
  * # reverts the last applied migration
  * yii mongodb-migrate/down
- * ~~~
+ * ```
+ *
+ * Since 2.1.2, in case of usage Yii version >= 2.0.10, you can use namespaced migrations. In order to enable this
+ * feature you should configure [[migrationNamespaces]] property for the controller at application configuration:
+ *
+ * ```php
+ * return [
+ *     'controllerMap' => [
+ *         'mongodb-migrate' => [
+ *             'class' => 'yii\mongodb\console\controllers\MigrateController',
+ *             'migrationNamespaces' => [
+ *                 'app\migrations',
+ *                 'some\extension\migrations',
+ *             ],
+ *             //'migrationPath' => null, // allows to disable not namespaced migration completely
+ *         ],
+ *     ],
+ * ];
+ * ```
  *
  * @author Klimov Paul <klimov@zfort.com>
  * @since 2.0
@@ -86,7 +104,7 @@ class MigrateController extends BaseMigrateController
      * It checks the existence of the [[migrationPath]].
      * @param \yii\base\Action $action the action to be executed.
      * @throws Exception if db component isn't configured
-     * @return boolean whether the action should continue to be executed.
+     * @return bool whether the action should continue to be executed.
      */
     public function beforeAction($action)
     {
@@ -112,8 +130,17 @@ class MigrateController extends BaseMigrateController
      */
     protected function createMigration($class)
     {
-        $file = $this->migrationPath . DIRECTORY_SEPARATOR . $class . '.php';
-        require_once($file);
+        // since Yii 2.0.12 includeMigrationFile() exists, which replaced the code below
+        // remove this construct when composer requirement raises above 2.0.12
+        if (method_exists($this, 'includeMigrationFile')) {
+            $this->includeMigrationFile($class);
+        } else {
+            $class = trim($class, '\\');
+            if (strpos($class, '\\') === false) {
+                $file = $this->migrationPath . DIRECTORY_SEPARATOR . $class . '.php';
+                require_once($file);
+            }
+        }
 
         return new $class(['db' => $this->db]);
     }
@@ -125,14 +152,49 @@ class MigrateController extends BaseMigrateController
     {
         $this->ensureBaseMigrationHistory();
 
-        $query = new Query;
-        $rows = $query->select(['version', 'apply_time'])
+        $query = (new Query())
+            ->select(['version', 'apply_time'])
             ->from($this->migrationCollection)
-            ->orderBy(['apply_time' => SORT_DESC, 'version' => SORT_DESC])
-            ->limit($limit)
-            ->all($this->db);
-        $history = ArrayHelper::map($rows, 'version', 'apply_time');
-        unset($history[self::BASE_MIGRATION]);
+            ->orderBy(['apply_time' => SORT_DESC, 'version' => SORT_DESC]);
+
+        if (empty($this->migrationNamespaces)) {
+            $query->limit($limit);
+            $rows = $query->all($this->db);
+            $history = ArrayHelper::map($rows, 'version', 'apply_time');
+            unset($history[self::BASE_MIGRATION]);
+            return $history;
+        }
+
+        $rows = $query->all($this->db);
+
+        $history = [];
+        foreach ($rows as $key => $row) {
+            if ($row['version'] === self::BASE_MIGRATION) {
+                continue;
+            }
+            if (preg_match('/m?(\d{6}_?\d{6})(\D.*)?$/is', $row['version'], $matches)) {
+                $time = str_replace('_', '', $matches[1]);
+                $row['canonicalVersion'] = $time;
+            } else {
+                $row['canonicalVersion'] = $row['version'];
+            }
+            $row['apply_time'] = (int)$row['apply_time'];
+            $history[] = $row;
+        }
+
+        usort($history, function ($a, $b) {
+            if ($a['apply_time'] === $b['apply_time']) {
+                if (($compareResult = strcasecmp($b['canonicalVersion'], $a['canonicalVersion'])) !== 0) {
+                    return $compareResult;
+                }
+                return strcasecmp($b['version'], $a['version']);
+            }
+            return ($a['apply_time'] > $b['apply_time']) ? -1 : +1;
+        });
+
+        $history = array_slice($history, 0, $limit);
+
+        $history = ArrayHelper::map($history, 'version', 'apply_time');
 
         return $history;
     }

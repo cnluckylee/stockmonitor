@@ -7,6 +7,7 @@
 
 namespace yii\mongodb\validators;
 
+use MongoDB\BSON\UTCDateTime;
 use yii\validators\DateValidator;
 
 /**
@@ -14,7 +15,7 @@ use yii\validators\DateValidator;
  *
  * Usage example:
  *
- * ~~~
+ * ```php
  * class Customer extends yii\mongodb\ActiveRecord
  * {
  *     ...
@@ -25,7 +26,7 @@ use yii\validators\DateValidator;
  *         ];
  *     }
  * }
- * ~~~
+ * ```
  *
  * @see DateValidator
  *
@@ -43,6 +44,7 @@ class MongoDateValidator extends DateValidator
      * the original value will be overwritten with the value after successful validation.
      */
     public $mongoDateAttribute;
+
 
     /**
      * @inheritdoc
@@ -63,8 +65,8 @@ class MongoDateValidator extends DateValidator
                 $timestamp = $model->{$this->timestampAttribute};
                 $mongoDateAttributeValue = $model->{$this->mongoDateAttribute};
                 // ensure "dirty attributes" support :
-                if (!($mongoDateAttributeValue instanceof \MongoDate) || $mongoDateAttributeValue->sec !== $timestamp) {
-                    $model->{$this->mongoDateAttribute} = new \MongoDate($timestamp);
+                if (!($mongoDateAttributeValue instanceof UTCDateTime) || $mongoDateAttributeValue->sec !== $timestamp) {
+                    $model->{$this->mongoDateAttribute} = new UTCDateTime($timestamp * 1000);
                 }
             }
         }
@@ -75,8 +77,8 @@ class MongoDateValidator extends DateValidator
      */
     protected function parseDateValue($value)
     {
-        if ($value instanceof \MongoDate) {
-            return $value->sec;
+        if ($value instanceof UTCDateTime) {
+            return $value->toDateTime()->getTimestamp();
         }
         return parent::parseDateValue($value);
     }

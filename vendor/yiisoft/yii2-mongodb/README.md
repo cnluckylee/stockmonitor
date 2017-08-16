@@ -1,7 +1,12 @@
-MongoDb Extension for Yii 2
-===========================
+<p align="center">
+    <a href="https://www.mongodb.com/" target="_blank" rel="external">
+        <img src="https://webassets.mongodb.com/_com_assets/cms/mongodb-logo-rgb-j6w271g1xn.jpg" height="80px">
+    </a>
+    <h1 align="center">MongoDB Extension for Yii 2</h1>
+    <br>
+</p>
 
-This extension provides the [MongoDB](http://www.mongodb.org/) integration for the [Yii framework 2.0](http://www.yiiframework.com).
+This extension provides the [MongoDB](https://www.mongodb.com/) integration for the [Yii framework 2.0](http://www.yiiframework.com).
 
 For license information check the [LICENSE](LICENSE.md)-file.
 
@@ -15,7 +20,9 @@ Documentation is at [docs/guide/README.md](docs/guide/README.md).
 Installation
 ------------
 
-This extension requires [MongoDB PHP Extension](http://us1.php.net/manual/en/book.mongo.php) version 1.5.0 or higher.
+This extension requires [MongoDB PHP Extension](http://us1.php.net/manual/en/set.mongodb.php) version 1.0.0 or higher.
+
+This extension requires MongoDB server version 3.0 or higher.
 
 The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
 
@@ -28,7 +35,7 @@ php composer.phar require --prefer-dist yiisoft/yii2-mongodb
 or add
 
 ```
-"yiisoft/yii2-mongodb": "~2.0.0"
+"yiisoft/yii2-mongodb": "~2.1.0"
 ```
 
 to the require section of your composer.json.

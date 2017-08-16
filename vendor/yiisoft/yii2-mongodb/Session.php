@@ -23,18 +23,19 @@ use yii\web\MultiFieldSession;
  * The following example shows how you can configure the application to use Session:
  * Add the following to your application config under `components`:
  *
- * ~~~
+ * ```php
  * 'session' => [
  *     'class' => 'yii\mongodb\Session',
  *     // 'db' => 'mymongodb',
  *     // 'sessionCollection' => 'my_session',
  * ]
- * ~~~
+ * ```
  *
  * Session extends [[MultiFieldSession]], thus it allows saving extra fields into the [[sessionCollection]].
  * Refer to [[MultiFieldSession]] for more details.
  *
- * @property boolean $useCustomStorage Whether to use custom storage. This property is read-only.
+ * Tip: you can use MongoDB [TTL index](https://docs.mongodb.com/manual/tutorial/expire-data/) for the session garbage
+ * collection for performance saving, in this case you should set [[Session::gCProbability]] to `0`.
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
  * @since 2.0
@@ -70,7 +71,7 @@ class Session extends MultiFieldSession
     /**
      * Updates the current session ID with a newly generated one.
      * Please refer to <http://php.net/session_regenerate_id> for more details.
-     * @param boolean $deleteOldSession Whether to delete the old associated session file or not.
+     * @param bool $deleteOldSession Whether to delete the old associated session file or not.
      */
     public function regenerateID($deleteOldSession = false)
     {
@@ -131,7 +132,7 @@ class Session extends MultiFieldSession
      * Do not call this method directly.
      * @param string $id session ID
      * @param string $data session data
-     * @return boolean whether session write is successful
+     * @return bool whether session write is successful
      */
     public function writeSession($id, $data)
     {
@@ -159,7 +160,7 @@ class Session extends MultiFieldSession
      * Session destroy handler.
      * Do not call this method directly.
      * @param string $id session ID
-     * @return boolean whether session is destroyed successfully
+     * @return bool whether session is destroyed successfully
      */
     public function destroySession($id)
     {
@@ -174,8 +175,8 @@ class Session extends MultiFieldSession
     /**
      * Session GC (garbage collection) handler.
      * Do not call this method directly.
-     * @param integer $maxLifetime the number of seconds after which data will be seen as 'garbage' and cleaned up.
-     * @return boolean whether session is GCed successfully
+     * @param int $maxLifetime the number of seconds after which data will be seen as 'garbage' and cleaned up.
+     * @return bool whether session is GCed successfully
      */
     public function gcSession($maxLifetime)
     {

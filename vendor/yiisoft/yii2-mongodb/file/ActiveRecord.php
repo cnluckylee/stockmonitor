@@ -21,19 +21,19 @@ use yii\web\UploadedFile;
  *
  * For example:
  *
- * ~~~
+ * ```php
  * $record = new ImageFile();
  * $record->file = '/path/to/some/file.jpg';
  * $record->save();
- * ~~~
+ * ```
  *
  * You can also specify file content via [[newFileContent]] attribute:
  *
- * ~~~
+ * ```php
  * $record = new ImageFile();
  * $record->newFileContent = 'New file content';
  * $record->save();
- * ~~~
+ * ```
  *
  * Note: [[newFileContent]] always takes precedence over [[file]].
  *
@@ -69,7 +69,8 @@ abstract class ActiveRecord extends \yii\mongodb\ActiveRecord
      * Note: all attributes defined in base Active Record class should be always present
      * in returned array.
      * For example:
-     * ~~~
+     *
+     * ```php
      * public function attributes()
      * {
      *     return array_merge(
@@ -77,7 +78,8 @@ abstract class ActiveRecord extends \yii\mongodb\ActiveRecord
      *         ['tags', 'status']
      *     );
      * }
-     * ~~~
+     * ```
+     *
      * @return array list of attribute names.
      */
     public function attributes()
@@ -126,8 +128,10 @@ abstract class ActiveRecord extends \yii\mongodb\ActiveRecord
         } else {
             $newId = $collection->insert($values);
         }
-        $this->setAttribute('_id', $newId);
-        $values['_id'] = $newId;
+        if ($newId !== null) {
+            $this->setAttribute('_id', $newId);
+            $values['_id'] = $newId;
+        }
 
         $changedAttributes = array_fill_keys(array_keys($values), null);
         $this->setOldAttributes($values);
@@ -255,12 +259,12 @@ abstract class ActiveRecord extends \yii\mongodb\ActiveRecord
         }
         if (empty($file)) {
             return null;
-        } elseif ($file instanceof \MongoGridFSFile) {
+        } elseif ($file instanceof Download) {
             $fileSize = $file->getSize();
             if (empty($fileSize)) {
                 return null;
             } else {
-                return $file->getBytes();
+                return $file->toString();
             }
         } elseif ($file instanceof UploadedFile) {
             return file_get_contents($file->tempName);
@@ -278,7 +282,7 @@ abstract class ActiveRecord extends \yii\mongodb\ActiveRecord
     /**
      * Writes the the internal file content into the given filename.
      * @param string $filename full filename to be written.
-     * @return boolean whether the operation was successful.
+     * @return bool whether the operation was successful.
      * @throws \yii\base\InvalidParamException on invalid file attribute value.
      */
     public function writeFile($filename)
@@ -289,8 +293,8 @@ abstract class ActiveRecord extends \yii\mongodb\ActiveRecord
         }
         if (empty($file)) {
             throw new InvalidParamException('There is no file associated with this object.');
-        } elseif ($file instanceof \MongoGridFSFile) {
-            return ($file->write($filename) == $file->getSize());
+        } elseif ($file instanceof Download) {
+            return ($file->toFile($filename) == $file->getSize());
         } elseif ($file instanceof UploadedFile) {
             return copy($file->tempName, $filename);
         } elseif (is_string($file)) {
@@ -319,7 +323,7 @@ abstract class ActiveRecord extends \yii\mongodb\ActiveRecord
         }
         if (empty($file)) {
             throw new InvalidParamException('There is no file associated with this object.');
-        } elseif ($file instanceof \MongoGridFSFile) {
+        } elseif ($file instanceof Download) {
             return $file->getResource();
         } elseif ($file instanceof UploadedFile) {
             return fopen($file->tempName, 'r');

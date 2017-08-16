@@ -7,6 +7,7 @@
 
 namespace yii\mongodb\validators;
 
+use MongoDB\BSON\ObjectID;
 use yii\base\InvalidConfigException;
 use yii\validators\Validator;
 use Yii;
@@ -17,7 +18,7 @@ use Yii;
  *
  * Usage example:
  *
- * ~~~
+ * ```php
  * class Customer extends yii\mongodb\ActiveRecord
  * {
  *     ...
@@ -28,7 +29,7 @@ use Yii;
  *         ];
  *     }
  * }
- * ~~~
+ * ```
  *
  * This validator may also serve as a filter, allowing conversion of Mongo ID value either to the plain string
  * or to [[\MongoId]] instance. You can enable this feature via [[forceFormat]].
@@ -44,9 +45,10 @@ class MongoIdValidator extends Validator
      * valid values are:
      * - 'string' - enforce value converted to plain string.
      * - 'object' - enforce value converted to [[\MongoId]] instance.
-     * If not set - no conversion will be performed, leaving attribute value intact.
+     *   If not set - no conversion will be performed, leaving attribute value intact.
      */
     public $forceFormat;
+
 
     /**
      * @inheritdoc
@@ -101,13 +103,13 @@ class MongoIdValidator extends Validator
      */
     private function parseMongoId($value)
     {
-        if ($value instanceof \MongoId) {
+        if ($value instanceof ObjectID) {
             return $value;
         }
         try {
-            return new \MongoId($value);
+            return new ObjectID($value);
         } catch (\Exception $e) {
             return null;
         }
     }
-} 
+}

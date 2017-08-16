@@ -12,6 +12,7 @@ return array(
     'yii\\faker\\' => array($vendorDir . '/yiisoft/yii2-faker'),
     'yii\\debug\\' => array($vendorDir . '/yiisoft/yii2-debug'),
     'yii\\composer\\' => array($vendorDir . '/yiisoft/yii2-composer'),
+    'yii\\mongodb\\' => array($vendorDir . '/yiisoft/yii2-mongodb'),
 
 
 
