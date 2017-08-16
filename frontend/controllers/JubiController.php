@@ -273,14 +273,20 @@ class JubiController extends Controller
             if($account->cny < $money){
                 exit("金额不足");
             }else{
-                if($money)
+                //预购
+                if($money && $count)
                 {
-                    $count = $money/$coindata['sell'];
-                }else if($count)
-                {
-                    $count = $count*$coindata['sell'];
+                    $price = $money;
+                }else{
+                    if($money)
+                    {
+                        $count = $money/$coindata['sell'];
+                    }else if($count)
+                    {
+                        $count = $count*$coindata['sell'];
+                    }
+                    $price = $coindata['sell'];
                 }
-                $price = $coindata['sell'];
             }
         }else if($type == 'sell')
         {
@@ -319,6 +325,10 @@ class JubiController extends Controller
         $str = http_build_query($params);
         $signature = hash_hmac("sha256",$str,Account::getIdKey());
         $params['signature'] = $signature;
+
+
+//        print_r($params);exit;
+
         $page = Tools::send_post($url,$params);
         $data = json_decode($page,true);
         if($data && $data['result'] == 1 && $data['id']>0)
@@ -331,6 +341,7 @@ class JubiController extends Controller
             $body ="总价:".$price*$count."; 数量:".$count."; 价格:".$price."; 类型:".$type."; 名称:".$coin."; 时间:".date("Y-m-d H:i:s");
             $this->sendMail($subject,$body);
         }else{
+//            print_r($data);exit;
             $subject = $coin."交易失败";
             $body ="总价:".$price*$count."; 数量:".$count."; 价格:".$price."; 类型:".$type."; 名称:".$coin."; 时间:".date("Y-m-d H:i:s");
             $this->sendMail($subject,$body);
