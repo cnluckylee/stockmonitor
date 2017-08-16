@@ -16,6 +16,7 @@ use Yii;
  * @property mixed $type
  * @property mixed $percent
  * @property mixed $state
+ * @property mixed $op
  */
 class Reserve extends \yii\mongodb\ActiveRecord
 {
@@ -43,6 +44,7 @@ class Reserve extends \yii\mongodb\ActiveRecord
             'type',
             'percent',
             'state',
+            'op'
         ];
     }
 
@@ -52,7 +54,7 @@ class Reserve extends \yii\mongodb\ActiveRecord
     public function rules()
     {
         return [
-            [['uid', 'coin', 'count', 'price', 'createdtime','updatedtime', 'type', 'percent', 'state'], 'safe']
+            [['uid', 'coin', 'count', 'price', 'createdtime','updatedtime', 'type', 'percent', 'state','op'], 'safe']
         ];
     }
 
@@ -71,6 +73,7 @@ class Reserve extends \yii\mongodb\ActiveRecord
             'type' => 'Type',
             'percent' => 'Percent',
             'state' => 'State',
+            'op' => 'Op'
         ];
     }
 }

@@ -69,7 +69,6 @@ class JubiController extends Controller
             if(!$row){
                 $v['maxsell'] = $v['buy'];
                 $v['minsell'] = $v['buy'];
-                $result[$k] = $v;
                 $row = $v;
             }else{
                 if(!isset($row['maxsell'])){
@@ -89,13 +88,18 @@ class JubiController extends Controller
                 }
                 $row = array_merge($row,$v);
                 $row['updatedtime'] = date('Y-m-d H:i:s');
-                $result[$k] = $row;
             }
             $reserve = Reserve::findOne(['coin'=>$k,'uid'=>Account::getUid(),'state'=>1]);
             if($reserve)
             {
                 $percent = $reserve->percent;
                 $type = $reserve->type;
+                //如果刚刚设置了售出，则修改minsell和maxsell
+                if($reserve->op == 1)
+                {
+                    $row['minsell'] = $row['maxsell'];
+                    $reserve->updateAttributes(['op' =>0]);
+                }
                 if($type == 'sell')
                 {
                     try{
@@ -122,7 +126,9 @@ class JubiController extends Controller
 //                        $this->trade($count,$v['sell']*0.99,'buy',$k,$reserve->_id);
                     }
                 }
+
             }
+            $result[$k] = $row;
             $sendmallcontroll = 'sendmall:'.date("Ymd");
             if($row['minsell']>0 && ($row['maxsell']/$row['minsell'])>1.14 && $redis->sadd($sendmallcontroll,'zjtx:'.$k))
             {
@@ -205,6 +211,7 @@ class JubiController extends Controller
         $model->percent = $percent;
         $model->createdtime = date('Y-m-d H:i:s');
         $model->state = 1;
+        $model->op = 1;
         if($model->save())
         {
             exit("预约成功!");
