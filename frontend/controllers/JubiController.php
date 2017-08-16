@@ -97,7 +97,7 @@ class JubiController extends Controller
                 //如果刚刚设置了售出，则修改minsell和maxsell
                 if($reserve->op == 1)
                 {
-                    $row['minsell'] = $row['maxsell'];
+                    $row['minsell'] = $row['maxsell'] = $row['buy'];
                     $reserve->updateAttributes(['op' =>0]);
                 }
                 if($type == 'sell')

@@ -97,7 +97,7 @@ class JubiController extends Controller
                 $type = $reserve->type;
                 if($reserve->op == 1)
                 {
-                    $row['minsell'] = $row['maxsell'];
+                    $row['minsell'] = $row['maxsell'] = $row['buy'];
                     $reserve->updateAttributes(['op' =>0]);
                 }
                 if($type == 'sell')
