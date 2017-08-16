@@ -27,8 +27,25 @@ class JubiController extends Controller
 
     public function actionAccount()
     {
+        $this->layout = 'main';
         $data = Account::getAccount();
-        print_r($data->attributes);exit;
+        $page = $this->redis->get('jubi:tickets');
+        $tickets = json_decode($page,true);
+        $datas =[];
+        foreach($data->data as $k=>$v)
+        {
+            $t = isset($tickets[$v['name']])?$tickets[$v['name']]:"";
+            if($t)
+            {
+                $v['money'] = $v['count'] * $t['buy'];
+            }else{
+                $v['money']  = $v['count'];
+            }
+            $datas[] = $v;
+        }
+        return $this->render('jubi',[
+           'data'=>$datas
+        ]);
     }
 
 
