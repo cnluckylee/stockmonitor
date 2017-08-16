@@ -219,6 +219,7 @@ class JubiController extends Controller
         $type = Tools::getParam('type');
         $coin = trim(Tools::getParam('coin'));
         $percent = floatval(Tools::getParam('percent'));
+        $omodel = Reserve::findOne(['coin'=>$coin,'uid'=>Account::getUid()]);
         $model = new Reserve();
         $model->uid = Account::getUid();
         $model->coin = $coin;
@@ -229,10 +230,22 @@ class JubiController extends Controller
         $model->createdtime = date('Y-m-d H:i:s');
         $model->state = 1;
         $model->op = 1;
-        if($model->save())
+        if($omodel)
         {
-            exit("预约成功!");
+            $d = $model->attributes;
+            unset($d['_id']);
+           $f = $omodel->updateAttributes($d);
+            if($f)
+            {
+                exit("预约成功!");
+            }
+        }else{
+            if($model->save())
+            {
+                exit("预约成功!");
+            }
         }
+
     }
 
     /**
