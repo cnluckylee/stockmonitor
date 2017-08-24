@@ -160,8 +160,7 @@ class JubiController extends Controller
 //        sleep(8);
 //        $this->runAction('compare');
     }
-
-
+    
 
     public function actionUpdatetickets()
     {
