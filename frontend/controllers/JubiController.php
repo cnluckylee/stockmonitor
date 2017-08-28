@@ -41,6 +41,7 @@ class JubiController extends Controller
             }else{
                 $v['money']  = $v['count'];
             }
+            $v['money'] = number_format($v['money'],2);
             $datas[] = $v;
         }
         return $this->render('jubi',[
