@@ -13,7 +13,7 @@ use common\models\Account;
 use common\models\Order;
 use common\models\Reserve;
 use common\models\Tickets;
-
+use common\models\Exchange;
 use yii\base\Exception;
 use common\models\Tools;
 
