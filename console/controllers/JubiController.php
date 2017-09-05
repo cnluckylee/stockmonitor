@@ -336,6 +336,12 @@ class JubiController extends Controller
                     $body ="当前汇率".$rate;
                     $this->sendMail($subject,$body);
                     $cachedata['val'] = $rate;
+                }else if($rate/$exchange->val<0.95)
+                {
+                    $subject = "汇率下跌提醒";
+                    $body ="当前汇率".$rate;
+                    $this->sendMail($subject,$body);
+                    $cachedata['val'] = $rate;
                 }
                 $exchange->updateAttributes($cachedata);
             }else{
