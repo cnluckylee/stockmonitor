@@ -304,6 +304,56 @@ class JubiController extends Controller
         }
     }
 
+
+    /**
+     * 汇率
+     */
+    public function actionExchange()
+    {
+        $query= "select * from yahoo.finance.xchange where pair in ('USDCNY')";
+        $url = 'https://query.yahooapis.com/v1/public/yql?q='.urlencode($query).'&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys';
+        $page = Tools::send_get($url);
+        $data = json_decode($page,true);
+        $result = isset($data['query']['results'])?$data['query']['results']['rate']:"";
+
+        if($result)
+        {
+            $exchange = Exchange::findOne(['id'=>1]);
+            $rate = $result['Rate'];
+            if($exchange)
+            {
+                $cachedata =[];
+                if($exchange->maxrate<$rate)
+                {
+                    $cachedata['maxrate'] = $rate;
+                }else if($exchange->minrate>$rate)
+                    $cachedata['minrate'] = $rate;
+
+                $cachedata['updatedtime'] = date('Y-m-d H:i:s');
+                if($rate/$exchange->val>1.1)
+                {
+                    $subject = "汇率上涨提醒";
+                    $body ="当前汇率".$rate;
+                    $this->sendMail($subject,$body);
+                    $cachedata['val'] = $rate;
+                }
+                $exchange->updateAttributes($cachedata);
+            }else{
+                $exchange = new Exchange();
+                $exchange->id =1;
+                $exchange->rate = $rate;
+                $exchange->minrate = $rate;
+                $exchange->maxrate = $rate;
+                $exchange->updatedtime = date('Y-m-d H:i:s');
+                $exchange->val = $rate;
+                $exchange->save();
+
+            }
+        }
+        exit(1);
+    }
+
+
     public function sendMail($subject,$body)
     {
         $mail= Yii::$app->mailer->compose();

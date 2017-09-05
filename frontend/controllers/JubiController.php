@@ -7,6 +7,7 @@
  */
 
 namespace frontend\controllers;
+use common\models\Exchange;
 use Yii;
 use yii\web\Controller;
 use common\models\Account;
@@ -247,6 +248,8 @@ class JubiController extends Controller
         }
 
     }
+
+
 
     /**
      * 买 money为总金额
