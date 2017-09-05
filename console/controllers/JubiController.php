@@ -330,7 +330,7 @@ class JubiController extends Controller
                     $cachedata['minrate'] = $rate;
 
                 $cachedata['updatedtime'] = date('Y-m-d H:i:s');
-                if($rate/$exchange->val>1.1)
+                if($rate/$exchange->val>1.05)
                 {
                     $subject = "汇率上涨提醒";
                     $body ="当前汇率".$rate;
