@@ -310,12 +310,19 @@ class JubiController extends Controller
      */
     public function actionExchange()
     {
-        $query= "select * from yahoo.finance.xchange where pair in ('USDCNY')";
-        $url = 'https://query.yahooapis.com/v1/public/yql?q='.urlencode($query).'&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys';
-        $page = Tools::send_get($url);
+        $url = 'https://developer.yahoo.com/yql/console/proxy.php';
+        $params = [
+            'diagnostics'=>'true',
+            'q'=>'select * from yahoo.finance.xchange where pair in ("USDCNY")',
+            'format'=>'json',
+            'env'=>'store://datatables.org/alltableswithkeys',
+            'crumb'=>'oAlo18Uec20',
+            '_rand'=>rand(1,99),
+            '_p'=>'hs'
+        ];
+        $page = Tools::send_post($url,$params);
         $data = json_decode($page,true);
         $result = isset($data['query']['results'])?$data['query']['results']['rate']:"";
-
         if($result)
         {
             $exchange = Exchange::findOne(['id'=>1]);
@@ -328,9 +335,9 @@ class JubiController extends Controller
                     $cachedata['maxrate'] = $rate;
                 }else if($exchange->minrate>$rate)
                     $cachedata['minrate'] = $rate;
-
+                echo "rate:".$rate/$exchange->val."\n";
                 $cachedata['updatedtime'] = date('Y-m-d H:i:s');
-                if($rate/$exchange->val>1.05)
+                if($rate/$exchange->val>1.005)
                 {
                     $subject = "汇率上涨提醒";
                     $body ="当前汇率".$rate;
@@ -343,6 +350,7 @@ class JubiController extends Controller
                     $this->sendMail($subject,$body);
                     $cachedata['val'] = $rate;
                 }
+                $cachedata['rate'] = $rate;
                 $exchange->updateAttributes($cachedata);
             }else{
                 $exchange = new Exchange();
