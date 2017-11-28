@@ -10,6 +10,7 @@ namespace frontend\controllers;
 use common\models\Stock;
 use Yii;
 
+use yii\db\Exception;
 use yii\web\Controller;
 use common\models\Tools;
 
@@ -70,15 +71,17 @@ class StockController extends Controller
         foreach($out[1] as $k=>$v)
         {
             $a = explode(",",$v);
-            $code = $out2[1][$k];
-            $stocks[$code] = [
-                'code'=>$code,
-                'name'=>$a[0],
-                'kpprice'=>$a[1],
-                'yprice'=>$a[2],
-                'sell'=>$a[3],
-                'time'=>$a[30].' '.$a[31]
-            ];
+            if(count($a)<10)
+                continue;
+                $code = $out2[1][$k];
+                $stocks[$code] = [
+                    'code'=>$code,
+                    'name'=>$a[0],
+                    'kpprice'=>$a[1],
+                    'yprice'=>$a[2],
+                    'sell'=>$a[3],
+                    'time'=>$a[30].' '.$a[31]
+                ];
         }
         $redis = Yii::$app->redis;
         $page = $redis->get('jubi:stock');
@@ -93,6 +96,7 @@ class StockController extends Controller
                 $v['maxsell'] = $v['sell'];
                 $v['minsell'] = $v['sell'];
                 $result[$code] = $v;
+                $row = $v;
             }else{
                 if(!isset($row['maxsell'])){
                     $row['maxsell'] = $v['sell'];

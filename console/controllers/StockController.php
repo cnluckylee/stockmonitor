@@ -70,6 +70,8 @@ class StockController extends Controller
         foreach($out[1] as $k=>$v)
         {
             $a = explode(",",$v);
+            if(count($a)<10)
+                continue;
             $code = $out2[1][$k];
             $stocks[$code] = [
                 'code'=>$code,
