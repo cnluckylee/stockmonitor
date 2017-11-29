@@ -18,6 +18,8 @@ use Yii;
  * @property mixed $starttime
  * @property mixed $endtime
  * @property mixed $state
+ * @property mixed $maxprice
+ * @property mixed $minprice
  */
 class Stock extends \yii\mongodb\ActiveRecord
 {
@@ -46,6 +48,8 @@ class Stock extends \yii\mongodb\ActiveRecord
             'starttime',
             'endtime',
             'state',
+            'maxprice',
+            'minprice'
         ];
     }
 
@@ -55,7 +59,7 @@ class Stock extends \yii\mongodb\ActiveRecord
     public function rules()
     {
         return [
-            [['uid', 'coin', 'count', 'price', 'createdtime', 'type', 'percent', 'starttime', 'endtime', 'state'], 'safe']
+            [['uid', 'coin', 'count', 'price', 'createdtime', 'type', 'percent', 'starttime', 'endtime', 'state','maxprice','minprice'], 'safe']
         ];
     }
 
@@ -76,6 +80,8 @@ class Stock extends \yii\mongodb\ActiveRecord
             'starttime' => 'Starttime',
             'endtime' => 'Endtime',
             'state' => 'State',
+            'maxprice' => 'Maxprice',
+            'minprice' => 'minprice',
         ];
     }
 }

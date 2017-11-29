@@ -120,34 +120,26 @@ class StockController extends Controller
             if($reserve)
             {
                 $percent = $reserve->percent;
-                $type = $reserve->type;
-                if($type == 'sell')
-                {
-                    try{
-                        echo $name.' '.$v['sell']/$row['maxsell'] ."<br>";
-                        if($v['sell']/$row['maxsell']<$percent)
-                        {
-                            $count = $reserve->count;
-                            $yll = ($v['sell']-$reserve->price)/$reserve->price*100;
-                            $yll = number_format($yll,2);
-                            $yl = ($v['sell']-$reserve->price)*$count;
-                            $body = "数量".$count.',卖出价：'.$v['sell'].'，盈利率：'.$yll.',盈利:'.$yl;
-                            $reserve->updateAttributes(['state'=>2]);
-                            $this->sendMail($name." 卖出提醒",$body);
-                        }
-                    }catch(Exception $e)
+                try{
+                    echo $name.' '.$v['sell']/$row['maxsell'] ."<br>";
+                    if($v['sell']/$row['maxsell']<$percent)
                     {
-                        print_r($e);exit;
+                        $count = $reserve->count;
+                        $yll = ($v['sell']-$reserve->price)/$reserve->price*100;
+                        $yll = number_format($yll,2);
+                        $yl = ($v['sell']-$reserve->price)*$count;
+                        $body = "数量".$count.',卖出价：'.$v['sell'].'，盈利率：'.$yll.',盈利:'.$yl;
+                        $reserve->updateAttributes(['state'=>2]);
+                        $this->sendMail($name." 卖出提醒",$body);
                     }
-
-                }else if($type == 'buy')
+                }catch(Exception $e)
                 {
-                    if($row['minsell']*$percent<$v['sell'])
-                    {
-//                        $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
-//                        $this->trade($count,$v['sell']*0.99,'buy',$k,$reserve->_id);
-                    }
+                    print_r($e);exit;
                 }
+                Stock::updateAll(['createdtime'=>date('Y-m-d H:i:s'),'price'=>$v['sell'],
+                    'maxprice'=>$row['maxsell'],'minprice'=>$row['minsell']],['_id'=>$reserve->_id]);
+//                print_r($reserve);exit;
+
             }
         }
         $redis->set('jubi:stock',json_encode($result));

@@ -123,8 +123,7 @@ class StockController extends Controller
             {
                 $percent = $reserve->percent;
                 $type = $reserve->type;
-                if($type == 'sell')
-                {
+
                     try{
                         echo $name.' '.number_format($v['sell']/$row['maxsell'],3) ."\n";
                         if($v['sell']/$row['maxsell']<$percent)
@@ -141,15 +140,8 @@ class StockController extends Controller
                     {
                         print_r($e);exit;
                     }
-
-                }else if($type == 'buy')
-                {
-//                    if($row['minsell']*$percent<$v['sell'])
-//                    {
-////                        $count = $reserve->count == 0?Account::getCoinNum(Account::getUid(),$k):$reserve->count;
-////                        $this->trade($count,$v['sell']*0.99,'buy',$k,$reserve->_id);
-//                    }
-                }
+                Stock::updateAll(['createdtime'=>date('Y-m-d H:i:s'),'price'=>$v['sell'],
+                    'maxprice'=>$row['maxsell'],'minprice'=>$row['minsell']],['_id'=>$reserve->_id]);
             }
         }
 
