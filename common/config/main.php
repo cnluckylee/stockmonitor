@@ -55,8 +55,8 @@ return [
                 'host' => 'smtp.163.com',  //每种邮箱的host配置不一样
                 'username' => 'woyaotixing@163.com',
                 'password' => 'qaZXsw21',
-                'port' => '25',
-                'encryption' => 'tls',
+                'port' => '465',
+                'encryption' => 'ssl',
 
             ],
             'messageConfig'=>[
