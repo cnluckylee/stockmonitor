@@ -1118,4 +1118,26 @@ class Tools
         fwrite($myfile, $txt);
         fclose($myfile);
     }
+
+    /**
+     * 发送post请求
+     * @param string $url 请求地址
+     * @param array $post_data post键值对数据
+     * @return string
+     */
+    public  static function getUrl($url,$params =[]) {
+        $postdata = http_build_query($params);
+        $url .= $postdata?'?'.$postdata:'';
+        $options = array(
+            'http' => array(
+                'method' => 'GET',
+                'header' => 'Content-type:application/x-www-form-urlencoded',
+//                'content' => $postdata,
+                'timeout' => 15 // 超时时间（单位:s）
+            )
+        );
+        $context = stream_context_create($options);
+        $result = file_get_contents($url, false, $context);
+        return $result;
+    }
 }
