@@ -36,6 +36,30 @@ class StockController extends Controller
     }
 
     /**
+     * 快速上涨
+     */
+    public function actionUp()
+    {
+        $pagesize = 50;
+        $page = 0;
+        $url ='http://quotes.money.163.com/hs/realtimedata/service/radar.php?host=/hs/realtimedata/service/radar.php&page='.$page.'&query=TYPES:QUICK_UP&fields=CODE,NAME,PRICE,PERCENT,DATE,TYPES,SYMBOL,NUMBER,HSL&sort=DATE&order=desc&count='.$pagesize.'&type=query&callback=callback';
+        $page = Tools::getUrl($url);
+        $page = str_replace('callback(','',$page);
+        $page = substr($page,0,strlen($page)-1);
+        $pageArray = json_decode($page,true);
+        $totalpages = $pageArray['pagecount'];
+        $urls = [];
+        for($i=1;$i<=$totalpages;$i++)
+        {
+            $page = $i;
+            $url ='http://quotes.money.163.com/hs/realtimedata/service/radar.php?host=/hs/realtimedata/service/radar.php&page='.$page.'&query=TYPES:QUICK_UP&fields=CODE,NAME,PRICE,PERCENT,DATE,TYPES,SYMBOL,NUMBER,HSL&sort=DATE&order=desc&count='.$pagesize.'&type=query&callback=callback';
+            $urls[] = $url;
+        }
+        $pages = Tools::remote($urls,null,false);
+        print_r($pages);exit;
+    }
+
+    /**
      * 每个5s执行一次
      */
     public function actionCompare()
