@@ -28,6 +28,11 @@ class WController extends Controller
 {"id":"9","fShopID":"f00101621","fTitle":"2016夏林允唐嫣明星街拍同款蓝色衬衫+网格镂空半身裙两件套装","fImg":"./list/img/pic7.png","fPrice":"90","fPostage":"免邮费","fRecord":"66"},
 {"id":"10","fShopID":"f00101621","fTitle":"左街右巷 潮牌牛仔 破洞时尚 修身百搭 浅蓝色青年良品","fImg":"./list/img/pic3.png","fPrice":"21","fPostage":"免邮费","fRecord":"236"}
 ]';
-        echo $str;exit;
+        $d = json_decode($str,true);
+        $out = [
+            'errno' =>0,
+            'list' =>$d
+        ];
+        Tools::jsonOut($out);
     }
 }
