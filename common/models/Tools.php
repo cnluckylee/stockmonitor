@@ -64,6 +64,7 @@ class Tools
 
     public static function jsonOut($array)
     {
+        header("Access-Control-Allow-Origin:*");
         $str = '';
         if (is_array($array))
             $str = json_encode($array);
@@ -1127,7 +1128,13 @@ class Tools
      */
     public  static function getUrl($url,$params =[]) {
         $postdata = http_build_query($params);
-        $url .= $postdata?'?'.$postdata:'';
+        if(strpos($url,'?') >=0)
+        {
+            $url .= $postdata?'&'.$postdata:'';
+        }else{
+            $url .= $postdata?'?'.$postdata:'';
+        }
+
         $options = array(
             'http' => array(
                 'method' => 'GET',

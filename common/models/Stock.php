@@ -7,19 +7,21 @@ use Yii;
 /**
  * This is the model class for collection "stock".
  *
- * @property \MongoId|string $_id
- * @property mixed $uid
- * @property mixed $coin
- * @property mixed $count
- * @property mixed $price
- * @property mixed $createdtime
- * @property mixed $type
+ * @property \MongoDB\BSON\ObjectID|string $_id
+ * @property mixed $code
+ * @property mixed $high
+ * @property mixed $low
+ * @property mixed $name
+ * @property mixed $open
  * @property mixed $percent
- * @property mixed $starttime
- * @property mixed $endtime
- * @property mixed $state
- * @property mixed $maxprice
- * @property mixed $minprice
+ * @property mixed $price
+ * @property mixed $symbol
+ * @property mixed $turnover
+ * @property mixed $updown
+ * @property mixed $volume
+ * @property mixed $wb
+ * @property mixed $yestclose
+ * @property mixed $no
  */
 class Stock extends \yii\mongodb\ActiveRecord
 {
@@ -28,7 +30,7 @@ class Stock extends \yii\mongodb\ActiveRecord
      */
     public static function collectionName()
     {
-        return ['jubi', 'stock'];
+        return ['stock', 'stock'];
     }
 
     /**
@@ -38,18 +40,20 @@ class Stock extends \yii\mongodb\ActiveRecord
     {
         return [
             '_id',
-            'uid',
-            'coin',
-            'count',
-            'price',
-            'createdtime',
-            'type',
+            'code',
+            'high',
+            'low',
+            'name',
+            'open',
             'percent',
-            'starttime',
-            'endtime',
-            'state',
-            'maxprice',
-            'minprice'
+            'price',
+            'symbol',
+            'turnover',
+            'updown',
+            'volume',
+            'wb',
+            'yestclose',
+            'no',
         ];
     }
 
@@ -59,7 +63,7 @@ class Stock extends \yii\mongodb\ActiveRecord
     public function rules()
     {
         return [
-            [['uid', 'coin', 'count', 'price', 'createdtime', 'type', 'percent', 'starttime', 'endtime', 'state','maxprice','minprice'], 'safe']
+            [['code', 'high', 'low', 'name', 'open', 'percent', 'price', 'symbol', 'turnover', 'updown', 'volume', 'wb', 'yestclose', 'no'], 'safe']
         ];
     }
 
@@ -70,18 +74,20 @@ class Stock extends \yii\mongodb\ActiveRecord
     {
         return [
             '_id' => 'ID',
-            'uid' => 'Uid',
-            'coin' => 'Coin',
-            'count' => 'Count',
-            'price' => 'Price',
-            'createdtime' => 'Createdtime',
-            'type' => 'Type',
+            'code' => 'Code',
+            'high' => 'High',
+            'low' => 'Low',
+            'name' => 'Name',
+            'open' => 'Open',
             'percent' => 'Percent',
-            'starttime' => 'Starttime',
-            'endtime' => 'Endtime',
-            'state' => 'State',
-            'maxprice' => 'Maxprice',
-            'minprice' => 'minprice',
+            'price' => 'Price',
+            'symbol' => 'Symbol',
+            'turnover' => 'Turnover',
+            'updown' => 'Updown',
+            'volume' => 'Volume',
+            'wb' => 'Wb',
+            'yestclose' => 'Yestclose',
+            'no' => 'No',
         ];
     }
 }
