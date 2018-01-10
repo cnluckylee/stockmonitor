@@ -39,7 +39,7 @@ return [
 //        ],
         'mongodb' => [
             'class' => '\yii\mongodb\Connection',
-            'dsn' => 'mongodb://10.0.0.2:19879/stock',
+            'dsn' => 'mongodb://10.0.0.2:19879/jubi',
         ],
         'redis' => [
             'class' => 'yii\redis\Connection',

@@ -44,6 +44,7 @@ class SController extends Controller
                      if(substr($v['SYMBOL'],0,1) != '6' && substr($v['SYMBOL'],0,1) != '0')
                          continue;
                      $d = [];
+                     $v['updatedtime'] = date('Y-m-d H:i:s');
                      foreach($v as $kk=>$vv)
                      {
                          $d[strtolower($kk)] = $vv;
@@ -55,6 +56,8 @@ class SController extends Controller
                              $model = new Stock();
                              $model->attributes = $d;
                              $model->save();
+                         }else{
+                             $model->update($d);
                          }
                      }catch (Exception $e)
                      {

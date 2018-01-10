@@ -7,7 +7,7 @@
  */
 
 namespace console\controllers;
-use common\models\Stock;
+use common\models\Runstock;
 use Yii;
 
 use yii\console\Controller;
@@ -28,7 +28,7 @@ class StockController extends Controller
         $params['endtime'] = Tools::getParam('endtime');
         $params['state'] = 1;
 
-        $model = new Stock();
+        $model = new Runstock();
         $model->attributes = $params;
         $model->createdtime = date('Y-m-d H:i:s');
         $model->save();
@@ -40,7 +40,7 @@ class StockController extends Controller
     public function actionCompare()
     {
         header("Content-type: text/html; charset=utf-8");
-        $mongoData = Stock::findAll(['state'=>1]);
+        $mongoData = Runstock::findAll(['state'=>1]);
         $list = [];
         $stocklists = [];
         $t = time();
@@ -140,7 +140,7 @@ class StockController extends Controller
                     {
                         print_r($e);exit;
                     }
-                Stock::updateAll(['createdtime'=>date('Y-m-d H:i:s'),'price'=>$v['sell'],
+                Runstock::updateAll(['createdtime'=>date('Y-m-d H:i:s'),'price'=>$v['sell'],
                     'maxprice'=>$row['maxsell'],'minprice'=>$row['minsell']],['_id'=>$reserve->_id]);
             }
         }

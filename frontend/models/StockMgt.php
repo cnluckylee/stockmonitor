@@ -13,7 +13,7 @@ use common\models\Tools;
 /**
  * ContactForm is the model behind the contact form.
  */
-class Stock extends Model
+class StockMgt extends Model
 {
     public static function queryCode($keyword)
     {
