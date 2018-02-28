@@ -37,6 +37,21 @@ class StockController extends Controller
     /**
      * 每个5s执行一次
      */
+    public function actionUpdate()
+    {
+        header("Content-type: text/html; charset=utf-8");
+        $mongoData = Runstock::findAll(['state' => 2]);
+        $t = time();
+        foreach ($mongoData as $k => $v) {
+            if (strtotime($v->endtime) > $t && $t > strtotime($v->starttime)) {
+                $v->updateAttributes(['state' => 1]);
+            }
+        }
+
+    }
+    /**
+     * 每个5s执行一次
+     */
     public function actionCompare()
     {
         header("Content-type: text/html; charset=utf-8");

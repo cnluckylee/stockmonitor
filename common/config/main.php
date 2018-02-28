@@ -39,11 +39,11 @@ return [
 //        ],
         'mongodb' => [
             'class' => '\yii\mongodb\Connection',
-            'dsn' => 'mongodb://127.0.0.1:19879/jubi',
+            'dsn' => 'mongodb://hk:19879/jubi',
         ],
         'redis' => [
             'class' => 'yii\redis\Connection',
-            'hostname' => '127.0.0.1',
+            'hostname' => 'hk',
             'port' => 19889,
             'database' => 1,
         ],
