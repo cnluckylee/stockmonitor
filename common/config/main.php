@@ -39,12 +39,12 @@ return [
 //        ],
         'mongodb' => [
             'class' => '\yii\mongodb\Connection',
-            'dsn' => 'mongodb://hk:19879/jubi',
+            'dsn' => 'mongodb://127.0.0.1:27001/jubi',
         ],
         'redis' => [
             'class' => 'yii\redis\Connection',
             'hostname' => 'hk',
-            'port' => 19889,
+            'port' => 27002,
             'database' => 1,
         ],
         'mailer' => [
@@ -53,15 +53,15 @@ return [
             'transport' => [
                 'class' => 'Swift_SmtpTransport',
                 'host' => 'smtp.163.com',  //每种邮箱的host配置不一样
-                'username' => 'woyaotixing@163.com',
-                'password' => 'qaZXsw21',
+                'username' => 'username@163.com',
+                'password' => 'password',
                 'port' => '465',
                 'encryption' => 'ssl',
 
             ],
             'messageConfig'=>[
                 'charset'=>'UTF-8',
-                'from'=>['woyaotixing@163.com'=>'我要提醒']
+                'from'=>['username@163.com'=>'我要提醒']
             ],
 
         ],
